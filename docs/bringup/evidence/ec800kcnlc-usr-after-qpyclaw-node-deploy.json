@@ -1,0 +1,197 @@
+﻿{
+  "action": "tree",
+  "port": "COM14",
+  "baud": 115200,
+  "policy": "NO_COMMERCIAL_VERDICT",
+  "allow_qpycom_risk": false,
+  "ok": true,
+  "raw": "<CR><LF>>>> <CR><LF>>>> <CR><LF>>>> import uos,ujson<CR><LF>>>> _code=\"def _qt(p,d,m):\\n out=[]\\n for f in uos.ilistdir(p):\\n  n=f[0]\\n  t=f[1]\\n  s=f[3]\\n  q=(p+'/'+n) if p!='/' else '/'+n\\n  item={'name':n,'path':q,'size':s,'type':'dir' if t==16384 else 'file'}\\n  if t==16384 and d<m:\\n   item['sub']=_qt(q,d+1,m)\\n  out.append(item)\\n return out\\n\"<CR><LF>>>> exec(_code)<CR><LF>>>> print(ujson.dumps(_qt('/usr',0,6)))<CR><LF>[{\"path\": \"/usr/_main.py\", \"size\": 286, \"name\": \"_main.py\", \"type\": \"file\"}, {\"name\": \"app\", \"type\": \"dir\", \"size\": 0, \"sub\": [{\"path\": \"/usr/app/__init__.py\", \"size\": 31, \"name\": \"__init__.py\", \"type\": \"file\"}, {\"path\": \"/usr/app/agent.py\", \"size\": 3357, \"name\": \"agent.py\", \"type\": \"file\"}, {\"path\": \"/usr/app/command_worker.py\", \"size\": 3886, \"name\": \"command_worker.py\", \"type\": \"file\"}, {\"path\": \"/usr/app/config.py\", \"size\": 2600, \"name\": \"config.py\", \"type\": \"file\"}, {\"path\": \"/usr/app/device_auth.py\", \"size\": 4880, \"name\": \"device_auth.py\", \"type\": \"file\"}, {\"path\": \"/usr/app/json_codec.py\", \"size\": 122, \"name\": \"json_codec.py\", \"type\": \"file\"}, {\"path\": \"/usr/app/runtime_state.py\", \"size\": 8919, \"name\": \"runtime_state.py\", \"type\": \"file\"}, {\"path\": \"/usr/app/system_control.py\", \"size\": 1743, \"name\": \"system_control.py\", \"type\": \"file\"}, {\"path\": \"/usr/app/tool_runner.py\", \"size\": 7165, \"name\": \"tool_runner.py\", \"type\": \"file\"}, {\"name\": \"tools\", \"type\": \"dir\", \"size\": 0, \"sub\": [{\"path\": \"/usr/app/tools/__init__.py\", \"size\": 36, \"name\": \"__init__.py\", \"type\": \"file\"}, {\"path\": \"/usr/app/tools/tool_cell_info.py\", \"size\": 534, \"name\": \"tool_cell_info.py\", \"type\": \"file\"}, {\"path\": \"/usr/app/tools/tool_device_info.py\", \"size\": 670, \"name\": \"tool_device_info.py\", \"type\": \"file\"}, {\"path\": \"/usr/app/tools/tool_device_reboot.py\", \"size\": 616, \"name\": \"tool_device_reboot.py\", \"type\": \"file\"}, {\"path\": \"/usr/app/tools/tool_device_status.py\", \"size\": 439, \"name\": \"tool_device_status.py\", \"type\": \"file\"}, {\"path\": \"/usr/app/tools/tool_fs_list.py\", \"size\": 638, \"name\": \"tool_fs_list.py\", \"type\": \"file\"}, {\"path\": \"/usr/app/tools/tool_fs_mkdir.py\", \"size\": 498, \"name\": \"tool_fs_mkdir.py\", \"type\": \"file\"}, {\"path\": \"/usr/app/tools/tool_fs_read.py\", \"size\": 558, \"name\": \"tool_fs_read.py\", \"type\": \"file\"}, {\"path\": \"/usr/app/tools/tool_fs_remove.py\", \"size\": 561, \"name\": \"tool_fs_remove.py\", \"type\": \"file\"}, {\"path\": \"/usr/app/tools/tool_fs_write.py\", \"size\": 962, \"name\": \"tool_fs_write.py\", \"type\": \"file\"}, {\"path\": \"/usr/app/tools/tool_net_diag.py\", \"size\": 1163, \"name\": \"tool_net_diag.py\", \"type\": \"file\"}, {\"path\": \"/usr/app/tools/tool_net_ifconfig.py\", \"size\": 821, \"name\": \"tool_net_ifconfig.py\", \"type\": \"file\"}, {\"path\": \"/usr/app/tools/tool_probe.py\", \"size\": 23044, \"name\": \"tool_probe.py\", \"type\": \"file\"}, {\"path\": \"/usr/app/tools/tool_runtime_status.py\", \"size\": 358, \"name\": \"tool_runtime_status.py\", \"type\": \"file\"}, {\"path\": \"/usr/app/tools/tool_sim_info.py\", \"size\": 527, \"name\": \"tool_sim_info.py\", \"type\": \"file\"}, {\"path\": \"/usr/app/tools/tool_tools_catalog.py\", \"size\": 537, \"name\": \"tool_tools_catalog.py\", \"type\": \"file\"}], \"path\": \"/usr/app/tools\"}, {\"path\": \"/usr/app/transport_ws_openclaw.py\", \"size\": 20421, \"name\": \"transport_ws_openclaw.py\", \"type\": \"file\"}, {\"path\": \"/usr/app/ws_client.py\", \"size\": 10558, \"name\": \"ws_client.py\", \"type\": \"file\"}], \"path\": \"/usr/app\"}]<CR><LF>>>>",
+  "path": "/usr",
+  "max_depth": 6,
+  "rows": [
+    {
+      "path": "/usr/_main.py",
+      "size": 286,
+      "name": "_main.py",
+      "type": "file"
+    },
+    {
+      "name": "app",
+      "type": "dir",
+      "size": 0,
+      "sub": [
+        {
+          "path": "/usr/app/__init__.py",
+          "size": 31,
+          "name": "__init__.py",
+          "type": "file"
+        },
+        {
+          "path": "/usr/app/agent.py",
+          "size": 3357,
+          "name": "agent.py",
+          "type": "file"
+        },
+        {
+          "path": "/usr/app/command_worker.py",
+          "size": 3886,
+          "name": "command_worker.py",
+          "type": "file"
+        },
+        {
+          "path": "/usr/app/config.py",
+          "size": 2600,
+          "name": "config.py",
+          "type": "file"
+        },
+        {
+          "path": "/usr/app/device_auth.py",
+          "size": 4880,
+          "name": "device_auth.py",
+          "type": "file"
+        },
+        {
+          "path": "/usr/app/json_codec.py",
+          "size": 122,
+          "name": "json_codec.py",
+          "type": "file"
+        },
+        {
+          "path": "/usr/app/runtime_state.py",
+          "size": 8919,
+          "name": "runtime_state.py",
+          "type": "file"
+        },
+        {
+          "path": "/usr/app/system_control.py",
+          "size": 1743,
+          "name": "system_control.py",
+          "type": "file"
+        },
+        {
+          "path": "/usr/app/tool_runner.py",
+          "size": 7165,
+          "name": "tool_runner.py",
+          "type": "file"
+        },
+        {
+          "name": "tools",
+          "type": "dir",
+          "size": 0,
+          "sub": [
+            {
+              "path": "/usr/app/tools/__init__.py",
+              "size": 36,
+              "name": "__init__.py",
+              "type": "file"
+            },
+            {
+              "path": "/usr/app/tools/tool_cell_info.py",
+              "size": 534,
+              "name": "tool_cell_info.py",
+              "type": "file"
+            },
+            {
+              "path": "/usr/app/tools/tool_device_info.py",
+              "size": 670,
+              "name": "tool_device_info.py",
+              "type": "file"
+            },
+            {
+              "path": "/usr/app/tools/tool_device_reboot.py",
+              "size": 616,
+              "name": "tool_device_reboot.py",
+              "type": "file"
+            },
+            {
+              "path": "/usr/app/tools/tool_device_status.py",
+              "size": 439,
+              "name": "tool_device_status.py",
+              "type": "file"
+            },
+            {
+              "path": "/usr/app/tools/tool_fs_list.py",
+              "size": 638,
+              "name": "tool_fs_list.py",
+              "type": "file"
+            },
+            {
+              "path": "/usr/app/tools/tool_fs_mkdir.py",
+              "size": 498,
+              "name": "tool_fs_mkdir.py",
+              "type": "file"
+            },
+            {
+              "path": "/usr/app/tools/tool_fs_read.py",
+              "size": 558,
+              "name": "tool_fs_read.py",
+              "type": "file"
+            },
+            {
+              "path": "/usr/app/tools/tool_fs_remove.py",
+              "size": 561,
+              "name": "tool_fs_remove.py",
+              "type": "file"
+            },
+            {
+              "path": "/usr/app/tools/tool_fs_write.py",
+              "size": 962,
+              "name": "tool_fs_write.py",
+              "type": "file"
+            },
+            {
+              "path": "/usr/app/tools/tool_net_diag.py",
+              "size": 1163,
+              "name": "tool_net_diag.py",
+              "type": "file"
+            },
+            {
+              "path": "/usr/app/tools/tool_net_ifconfig.py",
+              "size": 821,
+              "name": "tool_net_ifconfig.py",
+              "type": "file"
+            },
+            {
+              "path": "/usr/app/tools/tool_probe.py",
+              "size": 23044,
+              "name": "tool_probe.py",
+              "type": "file"
+            },
+            {
+              "path": "/usr/app/tools/tool_runtime_status.py",
+              "size": 358,
+              "name": "tool_runtime_status.py",
+              "type": "file"
+            },
+            {
+              "path": "/usr/app/tools/tool_sim_info.py",
+              "size": 527,
+              "name": "tool_sim_info.py",
+              "type": "file"
+            },
+            {
+              "path": "/usr/app/tools/tool_tools_catalog.py",
+              "size": 537,
+              "name": "tool_tools_catalog.py",
+              "type": "file"
+            }
+          ],
+          "path": "/usr/app/tools"
+        },
+        {
+          "path": "/usr/app/transport_ws_openclaw.py",
+          "size": 20421,
+          "name": "transport_ws_openclaw.py",
+          "type": "file"
+        },
+        {
+          "path": "/usr/app/ws_client.py",
+          "size": 10558,
+          "name": "ws_client.py",
+          "type": "file"
+        }
+      ],
+      "path": "/usr/app"
+    }
+  ]
+}

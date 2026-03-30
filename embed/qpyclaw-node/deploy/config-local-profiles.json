@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "profiles": {
+    "ec800kcnlc-dev-board": {
+      "device_model_hint": "EC800KCNLC",
+      "board_profile": "ec800kcnlc-sim-only",
+      "default_device_id": "qpyclaw_ec800k_node_001",
+      "default_device_name": "qpyclaw EC800K Public Node",
+      "default_client_display_name": "qpyclaw EC800K Node",
+      "default_tenant_id": "tenant_demo",
+      "default_ws_url": "wss://your-public-openclaw-gateway.example.com:10503",
+      "notes": [
+        "SIM-first development profile for the EC800KCNLC dev board.",
+        "Use this profile when current runtime scope is non-peripheral networking, filesystem, diagnostics, and runtime tools."
+      ]
+    },
+    "ec800mcnle-audio-board": {
+      "device_model_hint": "EC800MCNLE",
+      "board_profile": "ec800mcnle-audio-board",
+      "default_device_id": "qpyclaw_ec800m_audio_001",
+      "default_device_name": "qpyclaw EC800M Audio Node",
+      "default_client_display_name": "qpyclaw EC800M Audio Node",
+      "default_tenant_id": "tenant_demo",
+      "default_ws_url": "wss://your-public-openclaw-gateway.example.com:10503",
+      "notes": [
+        "Audio-board oriented bootstrap profile for EC800MCNLE hardware.",
+        "Current runtime can still start in non-audio mode; keep capability claims aligned with actual deployed features."
+      ]
+    }
+  }
+}

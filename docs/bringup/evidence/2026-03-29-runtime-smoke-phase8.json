@@ -1,0 +1,31 @@
+{
+  "date": "2026-03-29",
+  "scope": "qpyclaw-node phase8 runtime smoke",
+  "smoke_script": "project/qpyclaw/tools/host/qpy_runtime_smoke.py",
+  "device": {
+    "port": "COM11",
+    "fs_read_path": "/usr/app/config.py",
+    "fs_read_max_bytes": 128
+  },
+  "result": {
+    "ok": true,
+    "config_local_loaded": true,
+    "config_local_error": "",
+    "device_model_hint": "EC800KCNLC",
+    "board_profile": "ec800kcnlc-sim-only",
+    "catalog_status": "succeeded",
+    "catalog_result_code": "OK",
+    "catalog_tool_count": 16,
+    "fs_read_status": "succeeded",
+    "fs_read_result_code": "OK",
+    "fs_read_path": "/usr/app/config.py",
+    "fs_read_bytes": 128,
+    "loaded_domains_after_catalog": [
+      "runtime"
+    ],
+    "loaded_domains_after_fs_read": [
+      "filesystem",
+      "runtime"
+    ]
+  }
+}

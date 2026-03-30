@@ -1,0 +1,38 @@
+{
+  "generated_at": "2026-03-27T13:05:00+08:00",
+  "purpose": "Verify whether historical lcc-claw-node-qpy runtime can still reach the cloud OpenClaw gateway on the current EC800K board and cellular path.",
+  "device": {
+    "module_model": "EC800K",
+    "firmware_version": "EC800KCNLCR07A03M04_OCPU_QPY",
+    "repl_port": "COM14",
+    "at_port": "COM13",
+    "ipv4": "10.85.154.6"
+  },
+  "target": {
+    "gateway_url": "ws://124.70.221.88:18789",
+    "gateway_host": "124.70.221.88",
+    "gateway_role": "official_openclaw_gateway"
+  },
+  "legacy_runtime": {
+    "source_repo": "C:\\Users\\kingd\\Desktop\\code\\lcc-ai-team\\embed\\opensource\\lcc-claw-node-qpy",
+    "staged_root_on_device": "/usr/legacy_lcc",
+    "device_id": "lcc_legacy_probe_ec800k_001",
+    "token_state": "reused_from_live_device_config",
+    "client_id": "node-host",
+    "started": true
+  },
+  "snapshot_after_start": {
+    "online": false,
+    "connect_attempts": 1,
+    "connect_successes": 0,
+    "last_error_code": "CONNECT_FAILED",
+    "last_error": "handshake failed: HTTP/1.1 302 Found",
+    "last_close_reason": "connect-failed",
+    "device_token_cached": false
+  },
+  "conclusion": [
+    "Historical lcc-claw-node-qpy runtime does not bypass the current transport problem.",
+    "On the same EC800K board, same SIM path, and same cloud OpenClaw gateway, the legacy runtime fails exactly at the plain WebSocket handshake stage.",
+    "This rules out qpyclaw-only implementation drift as the primary cause of the current direct-cloud failure."
+  ]
+}

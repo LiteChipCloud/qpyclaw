@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "name": "ec800mcnle-audio-board-media",
+  "local_root_rel": "../../../../boards/ec800mcnle-audio-board/resource/ui/emoji",
+  "remote_root": "/usr/media",
+  "files": [
+    "angry.png",
+    "confident.png",
+    "confused.png",
+    "cool.png",
+    "crying.png",
+    "delicious.png",
+    "embarrassed.png",
+    "funny.png",
+    "happy.png",
+    "kissy.png",
+    "laughing.png",
+    "loving.png",
+    "neutral.png",
+    "relaxed.png",
+    "sad.png",
+    "shocked.png",
+    "sleepy.png",
+    "surprised.png",
+    "thinking.png",
+    "winking.png"
+  ],
+  "preserve_remote_files": [],
+  "remove_remote_files": []
+}

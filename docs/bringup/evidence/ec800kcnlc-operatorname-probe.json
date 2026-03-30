@@ -1,0 +1,3 @@
+{
+  "raw": "<CR><LF>>>> <CR><LF>>>> <CR><LF>>>> import ujson<CR><LF>>>> import net<CR><LF>>>> print('has_getOperatorName=' + ujson.dumps(hasattr(net,'getOperatorName')))<CR><LF>has_getOperatorName=false<CR><LF>>>> print('has_operatorName=' + ujson.dumps(hasattr(net,'operatorName')))<CR><LF>has_operatorName=true<CR><LF>>>> print('B1')<CR><LF>B1<CR><LF>>>> print('operatorName=' + ujson.dumps(net.operatorName()))<CR><LF>operatorName=[\"CHN-CT\", \"CT\", \"460\", \"11\"]<CR><LF>>>> print('B2')<CR><LF>B2<CR><LF>>>>"
+}

@@ -1,0 +1,509 @@
+{
+  "date": "2026-03-29",
+  "target": {
+    "host": "124.70.221.88",
+    "node_id": "09c41c83ee53ba08930ac6ca8d4815640382a77a13e08edfcc17646e66b8fc54",
+    "display_name": "qpyclaw QuecPython Node"
+  },
+  "tests": {
+    "status_before": {
+      "args": [
+        "nodes",
+        "status",
+        "--json"
+      ],
+      "stdout": "{\n  \"ts\": 1774760564764,\n  \"nodes\": [\n    {\n      \"nodeId\": \"09c41c83ee53ba08930ac6ca8d4815640382a77a13e08edfcc17646e66b8fc54\",\n      \"displayName\": \"qpyclaw QuecPython Node\",\n      \"platform\": \"quectel\",\n      \"version\": \"0.1.0\",\n      \"deviceFamily\": \"quecpython\",\n      \"remoteIp\": \"116.229.6.26\",\n      \"caps\": [\n        \"cellular\",\n        \"diagnostics\",\n        \"filesystem\",\n        \"network\",\n        \"runtime\"\n      ],\n      \"commands\": [\n        \"cell.info\",\n        \"device.info\",\n        \"device.reboot\",\n        \"device.status\",\n        \"fs.list\",\n        \"fs.ls\",\n        \"fs.mkdir\",\n        \"fs.read\",\n        \"fs.remove\",\n        \"fs.tree\",\n        \"fs.write\",\n        \"net.diag\",\n        \"net.ifconfig\",\n        \"push\",\n        \"qpy.cell.info\",\n        \"qpy.device.info\",\n        \"qpy.device.reboot\",\n        \"qpy.device.status\",\n        \"qpy.fs.list\",\n        \"qpy.fs.ls\",\n        \"qpy.fs.mkdir\",\n        \"qpy.fs.read\",\n        \"qpy.fs.remove\",\n        \"qpy.fs.tree\",\n        \"qpy.fs.write\",\n        \"qpy.help\",\n        \"qpy.net.diag\",\n        \"qpy.net.ifconfig\",\n        \"qpy.push\",\n        \"qpy.repl.run\",\n        \"qpy.runtime.status\",\n        \"qpy.sim.info\",\n        \"qpy.tools.catalog\",\n        \"repl.run\",\n        \"runtime.status\",\n        \"sim.info\",\n        \"tools.catalog\"\n      ],\n      \"permissions\": {},\n      \"connectedAtMs\": 1774708679456,\n      \"paired\": true,\n      \"connected\": true\n    },\n    {\n      \"nodeId\": \"e37b04a321297ad4db70fb78ebee42538d5e0daa702026b502b002f0e3c923b4\",\n      \"displayName\": \"QuecPython Windows Lab Node\",\n      \"platform\": \"quectel\",\n      \"remoteIp\": \"101.82.107.190\",\n      \"caps\": [],\n      \"commands\": [],\n      \"paired\": true,\n      \"connected\": false\n    }\n  ]\n}\n",
+      "stderr": "",
+      "json": {
+        "ts": 1774760564764,
+        "nodes": [
+          {
+            "nodeId": "09c41c83ee53ba08930ac6ca8d4815640382a77a13e08edfcc17646e66b8fc54",
+            "displayName": "qpyclaw QuecPython Node",
+            "platform": "quectel",
+            "version": "0.1.0",
+            "deviceFamily": "quecpython",
+            "remoteIp": "116.229.6.26",
+            "caps": [
+              "cellular",
+              "diagnostics",
+              "filesystem",
+              "network",
+              "runtime"
+            ],
+            "commands": [
+              "cell.info",
+              "device.info",
+              "device.reboot",
+              "device.status",
+              "fs.list",
+              "fs.ls",
+              "fs.mkdir",
+              "fs.read",
+              "fs.remove",
+              "fs.tree",
+              "fs.write",
+              "net.diag",
+              "net.ifconfig",
+              "push",
+              "qpy.cell.info",
+              "qpy.device.info",
+              "qpy.device.reboot",
+              "qpy.device.status",
+              "qpy.fs.list",
+              "qpy.fs.ls",
+              "qpy.fs.mkdir",
+              "qpy.fs.read",
+              "qpy.fs.remove",
+              "qpy.fs.tree",
+              "qpy.fs.write",
+              "qpy.help",
+              "qpy.net.diag",
+              "qpy.net.ifconfig",
+              "qpy.push",
+              "qpy.repl.run",
+              "qpy.runtime.status",
+              "qpy.sim.info",
+              "qpy.tools.catalog",
+              "repl.run",
+              "runtime.status",
+              "sim.info",
+              "tools.catalog"
+            ],
+            "permissions": {},
+            "connectedAtMs": 1774708679456,
+            "paired": true,
+            "connected": true
+          },
+          {
+            "nodeId": "e37b04a321297ad4db70fb78ebee42538d5e0daa702026b502b002f0e3c923b4",
+            "displayName": "QuecPython Windows Lab Node",
+            "platform": "quectel",
+            "remoteIp": "101.82.107.190",
+            "caps": [],
+            "commands": [],
+            "paired": true,
+            "connected": false
+          }
+        ]
+      }
+    },
+    "qpy_repl_run": {
+      "args": [
+        "nodes",
+        "invoke",
+        "--node",
+        "09c41c83ee53ba08930ac6ca8d4815640382a77a13e08edfcc17646e66b8fc54",
+        "--command",
+        "qpy.repl.run",
+        "--params",
+        "{\"code\": \"result = {'device_auth_mode': getattr(cfg, 'OPENCLAW_DEVICE_AUTH_MODE', None), 'openclaw_count': len([name for name in dir(cfg) if name.startswith('OPENCLAW_')])}\", \"result_var\": \"result\", \"mode\": \"exec\"}",
+        "--json"
+      ],
+      "stdout": "{\n  \"ok\": true,\n  \"nodeId\": \"09c41c83ee53ba08930ac6ca8d4815640382a77a13e08edfcc17646e66b8fc54\",\n  \"command\": \"qpy.repl.run\",\n  \"payload\": {\n    \"data\": {\n      \"ts\": 52179000,\n      \"result_type\": \"<class 'dict'>\",\n      \"node_id\": \"09c41c83ee53ba08930ac6ca8d4815640382a77a13e08edfcc17646e66b8fc54\",\n      \"mode\": \"exec\",\n      \"result_var\": \"result\",\n      \"globals\": [\n        \"cfg\",\n        \"result\",\n        \"state\"\n      ],\n      \"result_repr\": \"{'device_auth_mode': 'remote_signer_http', 'openclaw_count': 26}\"\n    },\n    \"status\": \"succeeded\",\n    \"requested_tool\": \"qpy.repl.run\",\n    \"error\": null,\n    \"duration_ms\": 69,\n    \"cmd_id\": \"7eb44042-ef6f-4e17-b3ed-9d517b49cdcb\",\n    \"tool\": \"qpy.repl.run\",\n    \"result_code\": \"OK\"\n  },\n  \"payloadJSON\": null\n}\n",
+      "stderr": "",
+      "json": {
+        "ok": true,
+        "nodeId": "09c41c83ee53ba08930ac6ca8d4815640382a77a13e08edfcc17646e66b8fc54",
+        "command": "qpy.repl.run",
+        "payload": {
+          "data": {
+            "ts": 52179000,
+            "result_type": "<class 'dict'>",
+            "node_id": "09c41c83ee53ba08930ac6ca8d4815640382a77a13e08edfcc17646e66b8fc54",
+            "mode": "exec",
+            "result_var": "result",
+            "globals": [
+              "cfg",
+              "result",
+              "state"
+            ],
+            "result_repr": "{'device_auth_mode': 'remote_signer_http', 'openclaw_count': 26}"
+          },
+          "status": "succeeded",
+          "requested_tool": "qpy.repl.run",
+          "error": null,
+          "duration_ms": 69,
+          "cmd_id": "7eb44042-ef6f-4e17-b3ed-9d517b49cdcb",
+          "tool": "qpy.repl.run",
+          "result_code": "OK"
+        },
+        "payloadJSON": null
+      }
+    },
+    "qpy_fs_mkdir": {
+      "args": [
+        "nodes",
+        "invoke",
+        "--node",
+        "09c41c83ee53ba08930ac6ca8d4815640382a77a13e08edfcc17646e66b8fc54",
+        "--command",
+        "qpy.fs.mkdir",
+        "--params",
+        "{\"path\": \"/usr/codex_regression_20260329/nested\"}",
+        "--json"
+      ],
+      "stdout": "{\n  \"ok\": true,\n  \"nodeId\": \"09c41c83ee53ba08930ac6ca8d4815640382a77a13e08edfcc17646e66b8fc54\",\n  \"command\": \"qpy.fs.mkdir\",\n  \"payload\": {\n    \"data\": {\n      \"path\": \"/usr/codex_regression_20260329/nested\",\n      \"created\": true,\n      \"ts\": 52182000,\n      \"node_id\": \"09c41c83ee53ba08930ac6ca8d4815640382a77a13e08edfcc17646e66b8fc54\"\n    },\n    \"status\": \"succeeded\",\n    \"requested_tool\": \"qpy.fs.mkdir\",\n    \"error\": null,\n    \"duration_ms\": 167,\n    \"cmd_id\": \"d15c15ba-ae62-4e37-8f5b-83cd6f3c5403\",\n    \"tool\": \"qpy.fs.mkdir\",\n    \"result_code\": \"OK\"\n  },\n  \"payloadJSON\": null\n}\n",
+      "stderr": "",
+      "json": {
+        "ok": true,
+        "nodeId": "09c41c83ee53ba08930ac6ca8d4815640382a77a13e08edfcc17646e66b8fc54",
+        "command": "qpy.fs.mkdir",
+        "payload": {
+          "data": {
+            "path": "/usr/codex_regression_20260329/nested",
+            "created": true,
+            "ts": 52182000,
+            "node_id": "09c41c83ee53ba08930ac6ca8d4815640382a77a13e08edfcc17646e66b8fc54"
+          },
+          "status": "succeeded",
+          "requested_tool": "qpy.fs.mkdir",
+          "error": null,
+          "duration_ms": 167,
+          "cmd_id": "d15c15ba-ae62-4e37-8f5b-83cd6f3c5403",
+          "tool": "qpy.fs.mkdir",
+          "result_code": "OK"
+        },
+        "payloadJSON": null
+      }
+    },
+    "qpy_fs_tree": {
+      "args": [
+        "nodes",
+        "invoke",
+        "--node",
+        "09c41c83ee53ba08930ac6ca8d4815640382a77a13e08edfcc17646e66b8fc54",
+        "--command",
+        "qpy.fs.tree",
+        "--params",
+        "{\"path\": \"/usr/codex_regression_20260329\", \"recursive\": true, \"max_depth\": 2}",
+        "--json"
+      ],
+      "stdout": "{\n  \"ok\": true,\n  \"nodeId\": \"09c41c83ee53ba08930ac6ca8d4815640382a77a13e08edfcc17646e66b8fc54\",\n  \"command\": \"qpy.fs.tree\",\n  \"payload\": {\n    \"data\": {\n      \"path\": \"/usr/codex_regression_20260329\",\n      \"tree\": {\n        \"name\": \"codex_regression_20260329\",\n        \"is_dir\": true,\n        \"mode\": 16384,\n        \"size\": 4,\n        \"path\": \"/usr/codex_regression_20260329\",\n        \"children\": [\n          {\n            \"name\": \"nested\",\n            \"is_dir\": true,\n            \"mode\": 16384,\n            \"size\": 2150566537,\n            \"path\": \"/usr/codex_regression_20260329/nested\",\n            \"children\": []\n          }\n        ]\n      },\n      \"ts\": 52185000,\n      \"node_id\": \"09c41c83ee53ba08930ac6ca8d4815640382a77a13e08edfcc17646e66b8fc54\"\n    },\n    \"status\": \"succeeded\",\n    \"requested_tool\": \"qpy.fs.tree\",\n    \"error\": null,\n    \"duration_ms\": 29,\n    \"cmd_id\": \"28674d20-05cb-4339-84e6-5305591ea4d2\",\n    \"tool\": \"qpy.fs.list\",\n    \"result_code\": \"OK\"\n  },\n  \"payloadJSON\": null\n}\n",
+      "stderr": "",
+      "json": {
+        "ok": true,
+        "nodeId": "09c41c83ee53ba08930ac6ca8d4815640382a77a13e08edfcc17646e66b8fc54",
+        "command": "qpy.fs.tree",
+        "payload": {
+          "data": {
+            "path": "/usr/codex_regression_20260329",
+            "tree": {
+              "name": "codex_regression_20260329",
+              "is_dir": true,
+              "mode": 16384,
+              "size": 4,
+              "path": "/usr/codex_regression_20260329",
+              "children": [
+                {
+                  "name": "nested",
+                  "is_dir": true,
+                  "mode": 16384,
+                  "size": 2150566537,
+                  "path": "/usr/codex_regression_20260329/nested",
+                  "children": []
+                }
+              ]
+            },
+            "ts": 52185000,
+            "node_id": "09c41c83ee53ba08930ac6ca8d4815640382a77a13e08edfcc17646e66b8fc54"
+          },
+          "status": "succeeded",
+          "requested_tool": "qpy.fs.tree",
+          "error": null,
+          "duration_ms": 29,
+          "cmd_id": "28674d20-05cb-4339-84e6-5305591ea4d2",
+          "tool": "qpy.fs.list",
+          "result_code": "OK"
+        },
+        "payloadJSON": null
+      }
+    },
+    "qpy_fs_remove_cleanup": {
+      "args": [
+        "nodes",
+        "invoke",
+        "--node",
+        "09c41c83ee53ba08930ac6ca8d4815640382a77a13e08edfcc17646e66b8fc54",
+        "--command",
+        "qpy.fs.remove",
+        "--params",
+        "{\"path\": \"/usr/codex_regression_20260329\", \"recursive\": true}",
+        "--json"
+      ],
+      "stdout": "{\n  \"ok\": true,\n  \"nodeId\": \"09c41c83ee53ba08930ac6ca8d4815640382a77a13e08edfcc17646e66b8fc54\",\n  \"command\": \"qpy.fs.remove\",\n  \"payload\": {\n    \"data\": {\n      \"removed\": \"dir\",\n      \"recursive\": true,\n      \"ts\": 52188000,\n      \"path\": \"/usr/codex_regression_20260329\",\n      \"node_id\": \"09c41c83ee53ba08930ac6ca8d4815640382a77a13e08edfcc17646e66b8fc54\"\n    },\n    \"status\": \"succeeded\",\n    \"requested_tool\": \"qpy.fs.remove\",\n    \"error\": null,\n    \"duration_ms\": 175,\n    \"cmd_id\": \"65b29f4d-09be-4993-b958-8d3eade212da\",\n    \"tool\": \"qpy.fs.remove\",\n    \"result_code\": \"OK\"\n  },\n  \"payloadJSON\": null\n}\n",
+      "stderr": "",
+      "json": {
+        "ok": true,
+        "nodeId": "09c41c83ee53ba08930ac6ca8d4815640382a77a13e08edfcc17646e66b8fc54",
+        "command": "qpy.fs.remove",
+        "payload": {
+          "data": {
+            "removed": "dir",
+            "recursive": true,
+            "ts": 52188000,
+            "path": "/usr/codex_regression_20260329",
+            "node_id": "09c41c83ee53ba08930ac6ca8d4815640382a77a13e08edfcc17646e66b8fc54"
+          },
+          "status": "succeeded",
+          "requested_tool": "qpy.fs.remove",
+          "error": null,
+          "duration_ms": 175,
+          "cmd_id": "65b29f4d-09be-4993-b958-8d3eade212da",
+          "tool": "qpy.fs.remove",
+          "result_code": "OK"
+        },
+        "payloadJSON": null
+      }
+    },
+    "status_before_reboot": {
+      "args": [
+        "nodes",
+        "status",
+        "--json"
+      ],
+      "stdout": "{\n  \"ts\": 1774760580073,\n  \"nodes\": [\n    {\n      \"nodeId\": \"09c41c83ee53ba08930ac6ca8d4815640382a77a13e08edfcc17646e66b8fc54\",\n      \"displayName\": \"qpyclaw QuecPython Node\",\n      \"platform\": \"quectel\",\n      \"version\": \"0.1.0\",\n      \"deviceFamily\": \"quecpython\",\n      \"remoteIp\": \"116.229.6.26\",\n      \"caps\": [\n        \"cellular\",\n        \"diagnostics\",\n        \"filesystem\",\n        \"network\",\n        \"runtime\"\n      ],\n      \"commands\": [\n        \"cell.info\",\n        \"device.info\",\n        \"device.reboot\",\n        \"device.status\",\n        \"fs.list\",\n        \"fs.ls\",\n        \"fs.mkdir\",\n        \"fs.read\",\n        \"fs.remove\",\n        \"fs.tree\",\n        \"fs.write\",\n        \"net.diag\",\n        \"net.ifconfig\",\n        \"push\",\n        \"qpy.cell.info\",\n        \"qpy.device.info\",\n        \"qpy.device.reboot\",\n        \"qpy.device.status\",\n        \"qpy.fs.list\",\n        \"qpy.fs.ls\",\n        \"qpy.fs.mkdir\",\n        \"qpy.fs.read\",\n        \"qpy.fs.remove\",\n        \"qpy.fs.tree\",\n        \"qpy.fs.write\",\n        \"qpy.help\",\n        \"qpy.net.diag\",\n        \"qpy.net.ifconfig\",\n        \"qpy.push\",\n        \"qpy.repl.run\",\n        \"qpy.runtime.status\",\n        \"qpy.sim.info\",\n        \"qpy.tools.catalog\",\n        \"repl.run\",\n        \"runtime.status\",\n        \"sim.info\",\n        \"tools.catalog\"\n      ],\n      \"permissions\": {},\n      \"connectedAtMs\": 1774708679456,\n      \"paired\": true,\n      \"connected\": true\n    },\n    {\n      \"nodeId\": \"e37b04a321297ad4db70fb78ebee42538d5e0daa702026b502b002f0e3c923b4\",\n      \"displayName\": \"QuecPython Windows Lab Node\",\n      \"platform\": \"quectel\",\n      \"remoteIp\": \"101.82.107.190\",\n      \"caps\": [],\n      \"commands\": [],\n      \"paired\": true,\n      \"connected\": false\n    }\n  ]\n}\n",
+      "stderr": "",
+      "json": {
+        "ts": 1774760580073,
+        "nodes": [
+          {
+            "nodeId": "09c41c83ee53ba08930ac6ca8d4815640382a77a13e08edfcc17646e66b8fc54",
+            "displayName": "qpyclaw QuecPython Node",
+            "platform": "quectel",
+            "version": "0.1.0",
+            "deviceFamily": "quecpython",
+            "remoteIp": "116.229.6.26",
+            "caps": [
+              "cellular",
+              "diagnostics",
+              "filesystem",
+              "network",
+              "runtime"
+            ],
+            "commands": [
+              "cell.info",
+              "device.info",
+              "device.reboot",
+              "device.status",
+              "fs.list",
+              "fs.ls",
+              "fs.mkdir",
+              "fs.read",
+              "fs.remove",
+              "fs.tree",
+              "fs.write",
+              "net.diag",
+              "net.ifconfig",
+              "push",
+              "qpy.cell.info",
+              "qpy.device.info",
+              "qpy.device.reboot",
+              "qpy.device.status",
+              "qpy.fs.list",
+              "qpy.fs.ls",
+              "qpy.fs.mkdir",
+              "qpy.fs.read",
+              "qpy.fs.remove",
+              "qpy.fs.tree",
+              "qpy.fs.write",
+              "qpy.help",
+              "qpy.net.diag",
+              "qpy.net.ifconfig",
+              "qpy.push",
+              "qpy.repl.run",
+              "qpy.runtime.status",
+              "qpy.sim.info",
+              "qpy.tools.catalog",
+              "repl.run",
+              "runtime.status",
+              "sim.info",
+              "tools.catalog"
+            ],
+            "permissions": {},
+            "connectedAtMs": 1774708679456,
+            "paired": true,
+            "connected": true
+          },
+          {
+            "nodeId": "e37b04a321297ad4db70fb78ebee42538d5e0daa702026b502b002f0e3c923b4",
+            "displayName": "QuecPython Windows Lab Node",
+            "platform": "quectel",
+            "remoteIp": "101.82.107.190",
+            "caps": [],
+            "commands": [],
+            "paired": true,
+            "connected": false
+          }
+        ]
+      }
+    },
+    "qpy_device_reboot": {
+      "args": [
+        "nodes",
+        "invoke",
+        "--node",
+        "09c41c83ee53ba08930ac6ca8d4815640382a77a13e08edfcc17646e66b8fc54",
+        "--command",
+        "qpy.device.reboot",
+        "--params",
+        "{\"mode\": \"soft\", \"delay_ms\": 1500}",
+        "--json"
+      ],
+      "stdout": "{\n  \"ok\": true,\n  \"nodeId\": \"09c41c83ee53ba08930ac6ca8d4815640382a77a13e08edfcc17646e66b8fc54\",\n  \"command\": \"qpy.device.reboot\",\n  \"payload\": {\n    \"data\": {\n      \"scheduled\": true,\n      \"delay_ms\": 1500,\n      \"mode\": \"soft\",\n      \"node_id\": \"09c41c83ee53ba08930ac6ca8d4815640382a77a13e08edfcc17646e66b8fc54\"\n    },\n    \"status\": \"succeeded\",\n    \"requested_tool\": \"qpy.device.reboot\",\n    \"error\": null,\n    \"duration_ms\": 1,\n    \"cmd_id\": \"01c4ec88-a91d-4309-97f0-8d2b44a01e3c\",\n    \"tool\": \"qpy.device.reboot\",\n    \"result_code\": \"OK\"\n  },\n  \"payloadJSON\": null\n}\n",
+      "stderr": "",
+      "json": {
+        "ok": true,
+        "nodeId": "09c41c83ee53ba08930ac6ca8d4815640382a77a13e08edfcc17646e66b8fc54",
+        "command": "qpy.device.reboot",
+        "payload": {
+          "data": {
+            "scheduled": true,
+            "delay_ms": 1500,
+            "mode": "soft",
+            "node_id": "09c41c83ee53ba08930ac6ca8d4815640382a77a13e08edfcc17646e66b8fc54"
+          },
+          "status": "succeeded",
+          "requested_tool": "qpy.device.reboot",
+          "error": null,
+          "duration_ms": 1,
+          "cmd_id": "01c4ec88-a91d-4309-97f0-8d2b44a01e3c",
+          "tool": "qpy.device.reboot",
+          "result_code": "OK"
+        },
+        "payloadJSON": null
+      }
+    },
+    "reboot_poll": {
+      "observed_offline": false,
+      "observed_online_after": false,
+      "timeline": [
+        {
+          "elapsed_sec": 2.5,
+          "connected": true,
+          "remote_ip": "116.229.6.26"
+        },
+        {
+          "elapsed_sec": 10.2,
+          "connected": true,
+          "remote_ip": "116.229.6.26"
+        },
+        {
+          "elapsed_sec": 17.6,
+          "connected": true,
+          "remote_ip": "116.229.6.26"
+        },
+        {
+          "elapsed_sec": 25.4,
+          "connected": true,
+          "remote_ip": "116.229.6.26"
+        },
+        {
+          "elapsed_sec": 32.9,
+          "connected": true,
+          "remote_ip": "116.229.6.26"
+        },
+        {
+          "elapsed_sec": 40.4,
+          "connected": true,
+          "remote_ip": "116.229.6.26"
+        },
+        {
+          "elapsed_sec": 47.9,
+          "connected": true,
+          "remote_ip": "116.229.6.26"
+        },
+        {
+          "elapsed_sec": 55.6,
+          "connected": true,
+          "remote_ip": "116.229.6.26"
+        },
+        {
+          "elapsed_sec": 63.2,
+          "connected": true,
+          "remote_ip": "116.229.6.26"
+        },
+        {
+          "elapsed_sec": 70.7,
+          "connected": true,
+          "remote_ip": "116.229.6.26"
+        },
+        {
+          "elapsed_sec": 78.1,
+          "connected": true,
+          "remote_ip": "116.229.6.26"
+        },
+        {
+          "elapsed_sec": 85.6,
+          "connected": true,
+          "remote_ip": "116.229.6.26"
+        },
+        {
+          "elapsed_sec": 93.1,
+          "connected": true,
+          "remote_ip": "116.229.6.26"
+        },
+        {
+          "elapsed_sec": 100.6,
+          "connected": true,
+          "remote_ip": "116.229.6.26"
+        },
+        {
+          "elapsed_sec": 108.1,
+          "connected": true,
+          "remote_ip": "116.229.6.26"
+        },
+        {
+          "elapsed_sec": 115.7,
+          "connected": true,
+          "remote_ip": "116.229.6.26"
+        },
+        {
+          "elapsed_sec": 123.3,
+          "connected": true,
+          "remote_ip": "116.229.6.26"
+        },
+        {
+          "elapsed_sec": 130.8,
+          "connected": true,
+          "remote_ip": "116.229.6.26"
+        },
+        {
+          "elapsed_sec": 138.3,
+          "connected": true,
+          "remote_ip": "116.229.6.26"
+        },
+        {
+          "elapsed_sec": 145.9,
+          "connected": true,
+          "remote_ip": "116.229.6.26"
+        }
+      ],
+      "final_snapshot": null
+    },
+    "qpy_runtime_status_after_reboot": {
+      "args": [
+        "nodes",
+        "invoke",
+        "--node",
+        "09c41c83ee53ba08930ac6ca8d4815640382a77a13e08edfcc17646e66b8fc54",
+        "--command",
+        "qpy.runtime.status",
+        "--json"
+      ],
+      "stdout": "",
+      "stderr": "nodes invoke failed: Error: TIMEOUT: node invoke timed out\n",
+      "json": null
+    },
+    "post_manual_relaunch": {
+      "note": "After qpy.device.reboot regression left the cloud-side runtime path unhealthy, /usr/_main.py was relaunched manually from COM11.",
+      "observed_result": {
+        "connected": true,
+        "connectedAtMs": 1774760905851,
+        "remoteIp": "101.90.158.156",
+        "qpy_runtime_status_ok": true,
+        "device_auth_mode": "remote_signer_http"
+      }
+    }
+  }
+}

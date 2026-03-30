@@ -1,0 +1,297 @@
+# QuecPython-compatible board map for EC800MCNLE audio board.
+
+BOARD_NAME = "ec800m_audio_board"
+TARGET_PRODUCT = "EC800MCNLE"
+PIN_REFERENCE_SOURCE = "EC800M-CN"
+
+CONNECTORS = {
+    "J4": {
+        "role": "uart_header",
+        "pins": {
+            "1": {"signal": "RXD2", "confidence": "medium"},
+            "2": {"signal": "TXD2", "confidence": "medium"},
+            "3": {"signal": "GND", "confidence": "high"},
+        },
+    },
+    "J6": {
+        "role": "lcd_header",
+        "pins": {
+            "1": {"signal": "GND", "confidence": "high"},
+            "2": {"signal": "VCC_3V3", "confidence": "high"},
+            "3": {"signal": "LCD_SPI_CLK_3V3", "confidence": "high"},
+            "4": {"signal": "LCD_SPI_DOUT_3V3", "confidence": "high"},
+            "5": {"signal": "LCD_RST_3V3", "confidence": "high"},
+            "6": {"signal": "LCD_RS_3V3", "confidence": "high"},
+            "7": {"signal": "BLK", "confidence": "medium"},
+            "8": {"signal": "LCD_SPI_CS_3V3", "confidence": "high"},
+        },
+    },
+    "J3": {
+        "role": "speaker_output",
+        "pins": {
+            "pair": {"signal": "AMP_SPK_OUT", "confidence": "medium"},
+        },
+    },
+    "J2": {
+        "role": "battery_input",
+        "pins": {
+            "pair": {"signal": "VBAT_GND", "confidence": "high"},
+        },
+    },
+    "CARD1": {
+        "role": "sim_socket",
+        "pins": {
+            "C1": {"signal": "SIM_VDD", "confidence": "high"},
+            "C2": {"signal": "SIM_RST", "confidence": "high"},
+            "C3": {"signal": "SIM_CLK", "confidence": "high"},
+            "C5": {"signal": "GND", "confidence": "high"},
+            "C7": {"signal": "SIM_DATA", "confidence": "high"},
+            "CD": {"signal": "SIM_DET", "confidence": "high"},
+        },
+    },
+    "J1": {
+        "role": "main_antenna",
+        "pins": {
+            "center": {"signal": "ANT_MAIN", "confidence": "high"},
+            "shell": {"signal": "GND", "confidence": "high"},
+        },
+    },
+}
+
+SIGNALS = {
+    "MIC_P": {
+        "module_pin": 3,
+        "module_signal": "MIC_P",
+        "class": "dedicated_audio",
+        "confidence": "high",
+    },
+    "MIC_N": {
+        "module_pin": 4,
+        "module_signal": "MIC_N",
+        "class": "dedicated_audio",
+        "confidence": "high",
+    },
+    "SPK_P": {
+        "module_pin": 5,
+        "module_signal": "SPK_P",
+        "class": "dedicated_audio",
+        "confidence": "high",
+    },
+    "SPK_N": {
+        "module_pin": 6,
+        "module_signal": "SPK_N",
+        "class": "dedicated_audio",
+        "confidence": "high",
+    },
+    "PWRKEY": {
+        "module_pin": 7,
+        "module_signal": "PWRKEY",
+        "class": "power_control",
+        "confidence": "high",
+    },
+    "ADC0": {
+        "module_pin": 9,
+        "module_signal": "ADC0",
+        "class": "adc",
+        "confidence": "high",
+    },
+    "SIM_DATA": {
+        "module_pin": 11,
+        "module_signal": "USIM_DATA",
+        "class": "sim",
+        "confidence": "high",
+    },
+    "SIM_RST": {
+        "module_pin": 12,
+        "module_signal": "USIM_RST",
+        "class": "sim",
+        "confidence": "high",
+    },
+    "SIM_CLK": {
+        "module_pin": 13,
+        "module_signal": "USIM_CLK",
+        "class": "sim",
+        "confidence": "high",
+    },
+    "SIM_VDD": {
+        "module_pin": 14,
+        "module_signal": "USIM_VDD",
+        "class": "sim",
+        "confidence": "high",
+    },
+    "NET_STATUS": {
+        "module_pin": 16,
+        "module_signal": "NET_STATUS",
+        "class": "indication",
+        "confidence": "medium",
+    },
+    "MAIN_RXD": {
+        "module_pin": 17,
+        "module_signal": "MAIN_RXD",
+        "class": "uart",
+        "confidence": "high",
+    },
+    "MAIN_TXD": {
+        "module_pin": 18,
+        "module_signal": "MAIN_TXD",
+        "class": "uart",
+        "confidence": "high",
+    },
+    "VDD_EXT": {
+        "module_pin": 24,
+        "module_signal": "VDD_EXT",
+        "class": "power",
+        "confidence": "high",
+    },
+    "STATUS": {
+        "module_pin": 25,
+        "module_signal": "STATUS",
+        "class": "indication",
+        "confidence": "medium",
+    },
+    "ANT_MAIN": {
+        "module_pin": 27,
+        "module_signal": "ANT_MAIN",
+        "class": "rf",
+        "confidence": "high",
+    },
+    "USB_DP": {
+        "module_pin": 59,
+        "module_signal": "USB_DP",
+        "class": "usb",
+        "confidence": "high",
+    },
+    "USB_DM": {
+        "module_pin": 60,
+        "module_signal": "USB_DM",
+        "class": "usb",
+        "confidence": "high",
+    },
+    "USB_VBUS": {
+        "module_pin": 61,
+        "module_signal": "USB_VBUS",
+        "class": "usb",
+        "confidence": "high",
+    },
+    "LCD_RST": {
+        "module_pin": 49,
+        "module_signal": "LCD_RST",
+        "class": "lcm",
+        "confidence": "high",
+    },
+    "LCD_SPI_DOUT": {
+        "module_pin": 50,
+        "module_signal": "LCD_SPI_DOUT",
+        "class": "lcm",
+        "confidence": "high",
+    },
+    "LCD_RS": {
+        "module_pin": 51,
+        "module_signal": "LCD_SPI_RS",
+        "class": "lcm",
+        "confidence": "high",
+    },
+    "LCD_SPI_CS": {
+        "module_pin": 52,
+        "module_signal": "LCD_SPI_CS",
+        "class": "lcm",
+        "confidence": "high",
+    },
+    "LCD_SPI_CLK": {
+        "module_pin": 53,
+        "module_signal": "LCD_SPI_CLK",
+        "class": "lcm",
+        "confidence": "high",
+    },
+    "I2C_SDA": {
+        "module_pin": 66,
+        "module_signal": "I2C_SDA",
+        "class": "i2c",
+        "confidence": "high",
+    },
+    "I2C_SCL": {
+        "module_pin": 67,
+        "module_signal": "I2C_SCL",
+        "class": "i2c",
+        "confidence": "high",
+    },
+    "LCD_TE": {
+        "module_pin": 78,
+        "module_signal": "LCD_TE",
+        "class": "lcm",
+        "confidence": "high",
+    },
+    "SIM_DET": {
+        "module_pin": 79,
+        "module_signal": "USIM_DET",
+        "class": "sim_detect",
+        "confidence": "high",
+    },
+    "USB_BOOT": {
+        "module_pin": 82,
+        "module_signal": "USB_BOOT",
+        "class": "boot_download",
+        "confidence": "high",
+    },
+    "AUX_RXD": {
+        "module_pin": 28,
+        "module_signal": "AUX_RXD",
+        "class": "uart",
+        "confidence": "high",
+    },
+    "AUX_TXD": {
+        "module_pin": 29,
+        "module_signal": "AUX_TXD",
+        "class": "uart",
+        "confidence": "high",
+    },
+    "DBG_RXD": {
+        "module_pin": 38,
+        "module_signal": "DBG_RXD",
+        "class": "debug_uart",
+        "confidence": "high",
+    },
+    "DBG_TXD": {
+        "module_pin": 39,
+        "module_signal": "DBG_TXD",
+        "class": "debug_uart",
+        "confidence": "high",
+    },
+    "BLK": {
+        "module_pin": None,
+        "module_signal": None,
+        "class": "control_unknown",
+        "confidence": "low",
+    },
+}
+
+SOFTWARE_POLICY = {
+    "do_not_treat_as_gpio_first": [
+        "PWRKEY",
+        "USB_DP",
+        "USB_DM",
+        "USB_VBUS",
+        "SIM_DATA",
+        "SIM_RST",
+        "SIM_CLK",
+        "SIM_VDD",
+        "MIC_P",
+        "MIC_N",
+        "SPK_P",
+        "SPK_N",
+        "MAIN_RXD",
+        "MAIN_TXD",
+        "LCD_RST",
+        "LCD_SPI_DOUT",
+        "LCD_RS",
+        "LCD_SPI_CS",
+        "LCD_SPI_CLK",
+        "LCD_TE",
+        "USB_BOOT",
+    ],
+    "needs_followup": [
+        "BLK",
+        "STATUS",
+        "NET_STATUS",
+    ],
+}

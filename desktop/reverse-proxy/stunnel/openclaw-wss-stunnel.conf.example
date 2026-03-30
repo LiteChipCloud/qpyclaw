@@ -1,0 +1,21 @@
+; stunnel server-side TLS terminator for qpyclaw-node public wss access.
+; Example topology:
+;   public wss://282r41l383.oicp.vip:10503
+;   PeanutShell TCP 10503 -> 127.0.0.1:18443
+;   stunnel 127.0.0.1:18443 -> 127.0.0.1:18789
+;   OpenClaw Gateway on 127.0.0.1:18789
+
+foreground = yes
+debug = info
+output = stunnel-openclaw.log
+
+[openclaw-wss]
+client = no
+accept = 127.0.0.1:18443
+connect = 127.0.0.1:18789
+cert = C:\path\to\openclaw-fullchain.pem
+key = C:\path\to\openclaw-privkey.pem
+
+; For proof-of-concept you may use a self-signed cert if the device-side TLS
+; client does not enforce CA validation. For production, use a proper CA-issued
+; certificate when possible.

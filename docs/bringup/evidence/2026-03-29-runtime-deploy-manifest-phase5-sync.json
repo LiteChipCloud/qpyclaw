@@ -1,0 +1,53 @@
+{
+  "date": "2026-03-29",
+  "scope": "qpyclaw-node phase5 manifest-driven deploy sync",
+  "manifest": "project/qpyclaw/embed/qpyclaw-node/deploy/runtime-manifest.json",
+  "local_runtime_app_py_count": 15,
+  "dry_run": {
+    "mode": "manifest",
+    "planned_directories": 3,
+    "planned_files": 16,
+    "planned_remove": 17,
+    "preserve_remote_files": [
+      "app/config_local.py"
+    ],
+    "ok": true
+  },
+  "device_sync": {
+    "port": "COM11",
+    "mode": "manifest",
+    "mkdir_count": 3,
+    "push_count": 16,
+    "remove_count": 17,
+    "ok": true
+  },
+  "device_after": {
+    "usr_app_entries": [
+      "__init__.py",
+      "agent.py",
+      "command_worker.py",
+      "config.py",
+      "config_local.py",
+      "device_auth.py",
+      "runtime_state.py",
+      "tool_runner.py",
+      "tools",
+      "transport_ws_openclaw.py",
+      "ws_client.py"
+    ],
+    "usr_app_tools_entries": [
+      "__init__.py",
+      "tool_probe.py",
+      "tools_device.py",
+      "tools_fs.py",
+      "tools_net.py",
+      "tools_runtime.py"
+    ]
+  },
+  "post_sync_smoke": {
+    "config_local_loaded": true,
+    "config_local_error": "",
+    "catalog_status": "succeeded",
+    "catalog_tool_count": 16
+  }
+}

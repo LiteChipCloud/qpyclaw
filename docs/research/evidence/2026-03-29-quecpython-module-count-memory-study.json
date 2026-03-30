@@ -1,0 +1,115 @@
+{
+  "date": "2026-03-29",
+  "scope": "QuecPython module file count and import-memory overhead study for qpyclaw-node runtime structure",
+  "target": {
+    "repl_port": "COM11",
+    "observed_sys_path": [
+      "/usr",
+      ""
+    ],
+    "runtime_shape": [
+      "_main.py",
+      "app/",
+      "legacy_lcc/",
+      "system_config.json"
+    ]
+  },
+  "skill_usage": {
+    "skill": "quecpython-dev",
+    "scripts_used": [
+      "qpy_device_fs_cli.py",
+      "qpy_device_info_probe.py",
+      "device_smoke_test.py"
+    ],
+    "notes": [
+      "Auto AT/REPL probe was not reliable for this session; COM11 was verified manually via REPL ls /usr.",
+      "Official online-doc helper scripts were partially blocked by the local Python dependency environment."
+    ]
+  },
+  "repo_snapshot": {
+    "app_file_count": 29,
+    "tools_file_count": 17,
+    "tools_lt_1k_count": 14,
+    "tools_lt_2k_count": 16,
+    "tools_total_bytes": 33899,
+    "app_root_file_count": 12,
+    "app_root_total_bytes": 66452
+  },
+  "single_empty_import_cycle": {
+    "file_size_bytes": 1,
+    "before_mem_free": 429104,
+    "after_mem_free": 429024,
+    "after_del_mem_free": 429088,
+    "delta_import": 80,
+    "delta_residual": 16
+  },
+  "individual_empty_series": [
+    {
+      "name": "codex_empty_1",
+      "size": 1,
+      "before": 431456,
+      "after": 431392,
+      "after_del": 431424,
+      "delta_import": 64,
+      "delta_residual": 32
+    },
+    {
+      "name": "codex_empty_2",
+      "size": 1,
+      "before": 431392,
+      "after": 431040,
+      "after_del": 431040,
+      "delta_import": 352,
+      "delta_residual": 352
+    },
+    {
+      "name": "codex_empty_3",
+      "size": 1,
+      "before": 431008,
+      "after": 430992,
+      "after_del": 430992,
+      "delta_import": 16,
+      "delta_residual": 16
+    },
+    {
+      "name": "codex_empty_4",
+      "size": 1,
+      "before": 430960,
+      "after": 430752,
+      "after_del": 430752,
+      "delta_import": 208,
+      "delta_residual": 208
+    },
+    {
+      "name": "codex_empty_5",
+      "size": 1,
+      "before": 430720,
+      "after": 430704,
+      "after_del": 430704,
+      "delta_import": 16,
+      "delta_residual": 16
+    },
+    {
+      "name": "codex_empty_6",
+      "size": 1,
+      "before": 430672,
+      "after": 430656,
+      "after_del": 430656,
+      "delta_import": 16,
+      "delta_residual": 16
+    }
+  ],
+  "same_content_compare": {
+    "six_single_class_modules": {
+      "before": 422944,
+      "after": 421968,
+      "delta_import": 976
+    },
+    "one_six_class_bundle": {
+      "before": 421728,
+      "after": 421120,
+      "delta_import": 608
+    },
+    "delta_saved_by_bundle": 368
+  }
+}

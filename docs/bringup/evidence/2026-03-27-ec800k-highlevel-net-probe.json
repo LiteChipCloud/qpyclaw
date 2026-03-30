@@ -1,0 +1,25 @@
+{
+  "generated_at": "2026-03-27T11:40:00+08:00",
+  "device": {
+    "module_model": "EC800K",
+    "firmware_version": "EC800KCNLCR07A03M04_OCPU_QPY",
+    "repl_port": "COM14"
+  },
+  "probe": {
+    "https_url": "https://124.70.221.88:18790/",
+    "ws_url": ""
+  },
+  "parsed": [
+    {
+      "stage": "import.request",
+      "detail": "request",
+      "status": "ok"
+    },
+    {
+      "stage": "https.request",
+      "detail": "HTTPS USSL '[Errno 104] ECONNRESET' FAIL='https://124.70.221.88:18790/'",
+      "status": "error"
+    }
+  ],
+  "conclusion": "Official high-level request HTTPS path fails the same way as low-level ussl probes."
+}

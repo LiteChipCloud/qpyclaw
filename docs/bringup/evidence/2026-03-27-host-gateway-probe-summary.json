@@ -1,0 +1,68 @@
+{
+  "date": "2026-03-27",
+  "tool": "tools/host/openclaw_gateway_probe.mjs",
+  "host_probe": {
+    "operator_role": [
+      {
+        "url": "ws://127.0.0.1:18789",
+        "httpStatus": 200,
+        "wsStage": "connect_ok",
+        "wsOpen": true,
+        "challengeSeen": true,
+        "connectOk": true
+      },
+      {
+        "url": "ws://282r41l383.oicp.vip:10503",
+        "httpStatus": 200,
+        "wsStage": "timeout_before_open",
+        "wsOpen": false,
+        "challengeSeen": false,
+        "connectOk": false
+      },
+      {
+        "url": "wss://282r41l383.oicp.vip",
+        "httpStatus": 200,
+        "wsStage": "connect_ok",
+        "wsOpen": true,
+        "challengeSeen": true,
+        "connectOk": true
+      },
+      {
+        "url": "wss://282r41l383.oicp.vip:10503",
+        "httpStatus": null,
+        "wsStage": "timeout_before_open",
+        "wsOpen": false,
+        "challengeSeen": false,
+        "connectOk": false
+      }
+    ],
+    "node_role": [
+      {
+        "url": "ws://127.0.0.1:18789",
+        "httpStatus": 200,
+        "wsStage": "connect_failed",
+        "wsOpen": true,
+        "challengeSeen": true,
+        "connectOk": false,
+        "errorCode": "NOT_PAIRED",
+        "error": "device identity required"
+      },
+      {
+        "url": "wss://282r41l383.oicp.vip",
+        "httpStatus": 200,
+        "wsStage": "connect_failed",
+        "wsOpen": true,
+        "challengeSeen": true,
+        "connectOk": false,
+        "errorCode": "NOT_PAIRED",
+        "error": "device identity required"
+      }
+    ]
+  },
+  "findings": [
+    "The host can fully connect to the local gateway via ws://127.0.0.1:18789.",
+    "The host can fully connect to the PeanutShell HTTPS entry via wss://282r41l383.oicp.vip.",
+    "The PeanutShell TCP entry 282r41l383.oicp.vip:10503 is not a working websocket path for either ws:// or wss://.",
+    "For role=node, the remaining blocker on the working endpoints is gateway-side device identity pairing, not transport reachability."
+  ]
+}

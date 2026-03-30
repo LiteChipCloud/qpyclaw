@@ -1,0 +1,23 @@
+__pycache__/
+*.pyc
+*.pyo
+*.log
+*.tmp
+*.bak
+
+.DS_Store
+Thumbs.db
+
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+
+# Local device config and secrets.
+config_local.py
+**/config_local.py
+!**/config_local.example.py
+!**/config_local.py.example
+
+# Generated local review artifacts.
+review/tmp/

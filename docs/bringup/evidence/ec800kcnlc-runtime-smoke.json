@@ -1,0 +1,17 @@
+{
+  "ok": true,
+  "raw": "<CR><LF>>>> <CR><LF>>>> <CR><LF>>>> import usys as sys<CR><LF>>>> import ujson<CR><LF>>>> sys.path.append('/usr') if '/usr' not in sys.path else None<CR><LF>>>> import app.config as cfg<CR><LF>>>> from app.runtime_state import RuntimeState<CR><LF>>>> from app.tool_runner import ToolRunner<CR><LF>>>> state=RuntimeState(cfg)<CR><LF>>>> runner=ToolRunner(cfg,state)<CR><LF>>>> catalog=runner.execute({'request_id':'probe-catalog','tool':'qpy.tools.catalog','args':{}})<CR><LF>>>> status=runner.execute({'request_id':'probe-status','tool':'qpy.runtime.status','args':{}})<CR><LF>>>> info=runner.execute({'request_id':'probe-info','tool':'qpy.device.info','args':{}})<CR><LF>>>> out={'device_id':cfg.DEVICE_ID,'catalog_status':catalog.get('status'),'catalog_count':((catalog.get('data') or {}).get('tool_count')),'runtime_status':status.get('status'),'runtime_online':((status.get('data') or {}).get('online')),'runtime_command_count':((status.get('data') or {}).get('command_count')),'device_info_status':info.get('status'),'module_model':((info.get('data') or {}).get('module_model')),'firmware_version':((info.get('data') or {}).get('firmware_version')),'sim_ready':(((info.get('data') or {}).get('sim') or {}).get('ready'))}<CR><LF>>>> print('QPYCLAW_PROBE=' + ujson.dumps(out))<CR><LF>QPYCLAW_PROBE={\"sim_ready\": false, \"device_id\": \"qpyclaw_demo_001\", \"catalog_status\": \"succeeded\", \"catalog_count\": 14, \"runtime_online\": false, \"runtime_command_count\": 28, \"runtime_status\": \"succeeded\", \"device_info_status\": \"succeeded\", \"module_model\": \"EC800K\", \"firmware_version\": \"EC800KCNLCR07A03M04_OCPU_QPY\"}<CR><LF>>>>",
+  "payload": "{\"sim_ready\": false, \"device_id\": \"qpyclaw_demo_001\", \"catalog_status\": \"succeeded\", \"catalog_count\": 14, \"runtime_online\": false, \"runtime_command_count\": 28, \"runtime_status\": \"succeeded\", \"device_info_status\": \"succeeded\", \"module_model\": \"EC800K\", \"firmware_version\": \"EC800KCNLCR07A03M04_OCPU_QPY\"}",
+  "parsed": {
+    "sim_ready": false,
+    "device_id": "qpyclaw_demo_001",
+    "catalog_status": "succeeded",
+    "catalog_count": 14,
+    "runtime_online": false,
+    "runtime_command_count": 28,
+    "runtime_status": "succeeded",
+    "device_info_status": "succeeded",
+    "module_model": "EC800K",
+    "firmware_version": "EC800KCNLCR07A03M04_OCPU_QPY"
+  }
+}

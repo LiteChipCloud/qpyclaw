@@ -1,0 +1,62 @@
+{
+  "date": "2026-03-29",
+  "scope": "qpyclaw-node phase6 config_local bootstrap standardization",
+  "profiles_registry": "project/qpyclaw/embed/qpyclaw-node/deploy/config-local-profiles.json",
+  "bootstrap_script": "project/qpyclaw/tools/host/qpy_config_local_bootstrap.py",
+  "device": {
+    "port": "COM11",
+    "board_profile": "ec800kcnlc-sim-only",
+    "device_model_hint": "EC800KCNLC"
+  },
+  "host_validation": {
+    "py_compile_ok": true,
+    "render_preview_ok": true,
+    "rendered_defaults": {
+      "device_id": "qpyclaw_ec800k_node_001",
+      "device_name": "qpyclaw EC800K Public Node",
+      "board_profile": "ec800kcnlc-sim-only",
+      "device_model_hint": "EC800KCNLC",
+      "ws_url": "wss://your-public-openclaw-gateway.example.com:10503",
+      "device_auth_mode": "none"
+    }
+  },
+  "default_remote_path_probe": {
+    "remote_path": "/usr/app/config_local.py",
+    "force": false,
+    "attempted": false,
+    "skipped_existing": true,
+    "ok": true
+  },
+  "alternate_remote_push": {
+    "remote_path": "/usr/app/config_local.bootstrap.test.py",
+    "attempted": true,
+    "ok": true,
+    "local_size": 992,
+    "remote_size": 992
+  },
+  "device_exec_validation": {
+    "ok": true,
+    "payload": {
+      "OPENCLAW_WS_URL": "wss://your-public-openclaw-gateway.example.com:10503",
+      "DEVICE_MODEL_HINT": "EC800KCNLC",
+      "DEVICE_ID": "qpyclaw_ec800k_node_001",
+      "BOARD_PROFILE": "ec800kcnlc-sim-only"
+    }
+  },
+  "cleanup": {
+    "removed_test_file": true,
+    "usr_app_entries_after": [
+      "__init__.py",
+      "agent.py",
+      "command_worker.py",
+      "config.py",
+      "config_local.py",
+      "device_auth.py",
+      "runtime_state.py",
+      "tool_runner.py",
+      "tools",
+      "transport_ws_openclaw.py",
+      "ws_client.py"
+    ]
+  }
+}

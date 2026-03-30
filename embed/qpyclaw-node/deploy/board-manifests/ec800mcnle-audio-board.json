@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "name": "ec800mcnle-audio-board-code",
+  "local_root_rel": "../../../../boards/ec800mcnle-audio-board/code",
+  "remote_root": "/usr/board",
+  "files": [
+    "board_audio.py",
+    "board_power.py",
+    "board_display.py",
+    "board_ui.py",
+    "board_bootstrap.py"
+  ],
+  "preserve_remote_files": [],
+  "remove_remote_files": []
+}

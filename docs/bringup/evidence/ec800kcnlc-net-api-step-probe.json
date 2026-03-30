@@ -1,0 +1,3 @@
+{
+  "raw": "<CR><LF>>>> <CR><LF>>>> <CR><LF>>>> import ujson<CR><LF>>>> import net<CR><LF>>>> import checkNet<CR><LF>>>> import dataCall<CR><LF>>>> print('S1')<CR><LF>S1<CR><LF>>>> print('getState=' + ujson.dumps(net.getState()))<CR><LF>getState=[[0, 0, 0, 0, 0, 0], [1, 13081, 155212421, 7, 0, 0]]<CR><LF>>>> print('S2')<CR><LF>S2<CR><LF>>>> print('getOperatorName=' + ujson.dumps(net.getOperatorName()))<CR><LF>Traceback (most recent call last):<CR><LF>  File \"<stdin>\", line 1, in <module><CR><LF>AttributeError: 'module' object has no attribute 'getOperatorName'<CR><LF>>>> print('S3')<CR><LF>S3<CR><LF>>>> print('getServingCi=' + ujson.dumps(net.getServingCi()))<CR><LF>getServingCi=155212421<CR><LF>>>>"
+}

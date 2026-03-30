@@ -1,0 +1,10 @@
+{
+  "qpy.net.ifconfig": {
+    "ok": false,
+    "raw": "<CR><LF>>>> <CR><LF>>>> <CR><LF>>>> import usys as sys<CR><LF>>>> import ujson<CR><LF>>>> sys.path.append('/usr') if '/usr' not in sys.path else None<CR><LF>>>> import app.config as cfg<CR><LF>>>> from app.runtime_state import RuntimeState<CR><LF>>>> from app.tool_runner import ToolRunner<CR><LF>>>> state=RuntimeState(cfg)<CR><LF>>>> runner=ToolRunner(cfg,state)<CR><LF>>>> res=runner.execute({'request_id':'probe','tool':'qpy.net.ifconfig','args':{}})<CR><LF>"
+  },
+  "qpy.net.diag": {
+    "ok": false,
+    "raw": "Traceback (most recent call last):<CR><LF>  File \"<stdin>\", line 1, in <module><CR><LF>  File \"/usr/app/tool_runner.py\", line 183, in execute<CR><LF>  File \"/usr/app/tools/tool_net_ifconfig.py\", line 12, in execute<CR><LF>  File \"/usr/app/tools/tool_probe.py\", line 502, in gather_network_info<CR><LF>KeyboardInterrupt: <CR><LF>>>> import ujson<CR><LF>>>> sys.path.append('/usr') if '/usr' not in sys.path else None<CR><LF>>>> import app.config as cfg<CR><LF>>>> from app.runtime_state import RuntimeState<CR><LF>>>> from app.tool_runner import ToolRunner<CR><LF>>>> state=RuntimeState(cfg)<CR><LF>>>> runner=ToolRunner(cfg,state)<CR><LF>>>> res=runner.execute({'request_id':'probe','tool':'qpy.net.diag','args':{}})<CR><LF>"
+  }
+}

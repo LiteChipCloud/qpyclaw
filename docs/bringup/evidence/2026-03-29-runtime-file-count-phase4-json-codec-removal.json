@@ -1,0 +1,59 @@
+{
+  "date": "2026-03-29",
+  "scope": "qpyclaw-node phase4 json_codec removal",
+  "local_runtime_app_py_count": 15,
+  "compatibility_check": {
+    "tool": "check_quecpython_compat.py",
+    "target": "project/qpyclaw/embed/qpyclaw-node/runtime/usr_mirror/app",
+    "scanned_files": 15,
+    "issues_found": 0,
+    "ok": true
+  },
+  "code_changes": {
+    "device_auth_inlined_json_codec": true,
+    "transport_inlined_json_codec": true,
+    "json_codec_deleted": true
+  },
+  "device_apply": {
+    "port": "COM11",
+    "device_auth_push": {
+      "remote_path": "/usr/app/device_auth.py",
+      "bytes_written": 4962,
+      "remote_size": 4962,
+      "ok": true
+    },
+    "transport_push": {
+      "remote_path": "/usr/app/transport_ws_openclaw.py",
+      "bytes_written": 20503,
+      "remote_size": 20503,
+      "ok": true
+    },
+    "remove_json_codec": {
+      "path": "/usr/app/json_codec.py",
+      "ok": true
+    }
+  },
+  "device_import_smoke": {
+    "device_auth_imported": true,
+    "transport_imported": true,
+    "json_codec_loaded": false,
+    "device_auth_roundtrip": 1,
+    "transport_roundtrip": 2,
+    "has_transport_class": true
+  },
+  "device_after": {
+    "usr_app_entries": [
+      "__init__.py",
+      "agent.py",
+      "command_worker.py",
+      "config.py",
+      "config_local.py",
+      "device_auth.py",
+      "runtime_state.py",
+      "tool_runner.py",
+      "tools",
+      "transport_ws_openclaw.py",
+      "ws_client.py"
+    ]
+  }
+}

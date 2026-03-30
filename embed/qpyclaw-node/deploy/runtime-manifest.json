@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "name": "qpyclaw-node-runtime",
+  "local_root_rel": "../runtime/usr_mirror",
+  "remote_root": "/usr",
+  "files": [
+    "_main.py",
+    "qpyclaw_node.py"
+  ],
+  "preserve_remote_files": [
+    "config_local.py",
+    "app/config_local.py"
+  ],
+  "remove_remote_files": [
+    "app/__init__.py",
+    "app/agent.py",
+    "app/command_worker.py",
+    "app/config.py",
+    "app/device_auth.py",
+    "app/runtime_state.py",
+    "app/tool_runner.py",
+    "app/transport_ws_openclaw.py",
+    "app/ws_client.py",
+    "app/tools/__init__.py",
+    "app/tools/tool_probe.py",
+    "app/tools/tools_device.py",
+    "app/tools/tools_fs.py",
+    "app/tools/tools_net.py",
+    "app/tools/tools_runtime.py",
+    "app/config_local.example.py",
+    "app/json_codec.py",
+    "app/system_control.py",
+    "app/tools/tool_cell_info.py",
+    "app/tools/tool_device_info.py",
+    "app/tools/tool_device_reboot.py",
+    "app/tools/tool_device_status.py",
+    "app/tools/tool_fs_list.py",
+    "app/tools/tool_fs_mkdir.py",
+    "app/tools/tool_fs_read.py",
+    "app/tools/tool_fs_remove.py",
+    "app/tools/tool_fs_write.py",
+    "app/tools/tool_net_diag.py",
+    "app/tools/tool_net_ifconfig.py",
+    "app/tools/tool_runtime_status.py",
+    "app/tools/tool_sim_info.py",
+    "app/tools/tool_tools_catalog.py"
+  ]
+}

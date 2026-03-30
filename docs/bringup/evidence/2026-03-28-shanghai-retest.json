@@ -1,0 +1,29 @@
+{
+  "generated_at": "2026-03-28T00:16:30+08:00",
+  "purpose": "Retest EC800K -> cloud OpenClaw connectivity after moving from Jinan to Shanghai.",
+  "device": {
+    "module_model": "EC800K",
+    "firmware_version": "EC800KCNLCR07A03M04_OCPU_QPY",
+    "at_port": "COM9",
+    "repl_port": "COM11",
+    "imei": "864068070777851",
+    "sim_inserted": true,
+    "registration_ok": true,
+    "ipv4": "10.87.171.69"
+  },
+  "plain_ws_probe": {
+    "url": "ws://124.70.221.88:18789",
+    "http_get_result": "HTTP/1.1 302 Found -> service.sh.189.cn",
+    "ws_upgrade_result": "HTTP/1.1 302 Found -> service.sh.189.cn"
+  },
+  "high_level_probes": {
+    "https_baidu": "HTTPS USSL [Errno 104] ECONNRESET",
+    "uwebsocket_openclaw": "b'HTTP/1.1 302 Found'"
+  },
+  "conclusion": [
+    "Changing physical location from Jinan to Shanghai did not restore direct plain WebSocket access to the public cloud OpenClaw gateway.",
+    "The carrier-side HTTP/WebSocket 302 rewrite is still present on ws://124.70.221.88:18789.",
+    "Device-side HTTPS/TLS is still failing at the QuecPython request layer with USSL ECONNRESET.",
+    "The current EC800K + current SIM path is still unable to act as a direct cloud OpenClaw node."
+  ]
+}

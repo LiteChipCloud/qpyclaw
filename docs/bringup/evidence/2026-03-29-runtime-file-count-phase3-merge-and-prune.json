@@ -1,0 +1,77 @@
+{
+  "date": "2026-03-29",
+  "scope": "qpyclaw-node phase3 runtime file-count reduction",
+  "local_runtime_app_py_count": 16,
+  "compatibility_check": {
+    "tool": "check_quecpython_compat.py",
+    "target": "project/qpyclaw/embed/qpyclaw-node/runtime/usr_mirror/app",
+    "scanned_files": 16,
+    "issues_found": 0,
+    "ok": true
+  },
+  "code_changes": {
+    "config_local_example_moved_to": "project/qpyclaw/embed/qpyclaw-node/runtime/examples/config_local.example.py",
+    "system_control_merged_into": "project/qpyclaw/embed/qpyclaw-node/runtime/usr_mirror/app/agent.py",
+    "system_control_deleted": true
+  },
+  "device_before": {
+    "port": "COM11",
+    "usr_app_entries": [
+      "__init__.py",
+      "agent.py",
+      "command_worker.py",
+      "config.py",
+      "config_local.example.py",
+      "config_local.py",
+      "device_auth.py",
+      "json_codec.py",
+      "runtime_state.py",
+      "system_control.py",
+      "tool_runner.py",
+      "tools",
+      "transport_ws_openclaw.py",
+      "ws_client.py"
+    ]
+  },
+  "device_apply": {
+    "agent_push": {
+      "remote_path": "/usr/app/agent.py",
+      "bytes_written": 5048,
+      "remote_size": 5048,
+      "ok": true
+    },
+    "remove_system_control": {
+      "path": "/usr/app/system_control.py",
+      "ok": true
+    },
+    "remove_config_local_example": {
+      "path": "/usr/app/config_local.example.py",
+      "ok": true
+    }
+  },
+  "device_after": {
+    "port": "COM11",
+    "usr_app_entries": [
+      "__init__.py",
+      "agent.py",
+      "command_worker.py",
+      "config.py",
+      "config_local.py",
+      "device_auth.py",
+      "json_codec.py",
+      "runtime_state.py",
+      "tool_runner.py",
+      "tools",
+      "transport_ws_openclaw.py",
+      "ws_client.py"
+    ]
+  },
+  "agent_import_smoke": {
+    "agent_imported": true,
+    "system_control_loaded": false,
+    "has_execute_reboot": true,
+    "has_perform_pending_reboot": true,
+    "perform_pending_reboot_without_pending": false,
+    "debug_snapshot_has_state": false
+  }
+}
