@@ -4,6 +4,8 @@
 
 当前发布级别：`Alpha / Developer Preview`
 
+建议首个公开 tag：`v0.1.0-alpha.1`
+
 ## 1. 这次发布包含什么
 
 | 主题 | 内容 |
