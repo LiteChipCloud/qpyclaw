@@ -18,7 +18,6 @@
 | [../architecture/07-qpyclaw-node-tools-consolidation-plan.md](../architecture/07-qpyclaw-node-tools-consolidation-plan.md) | 明确 `qpyclaw-node` 运行时工具模块收敛、按域合并和 lazy import 的迁移方案 | 架构、研发 |
 | [../research/01-ecosystem-scan.md](../research/01-ecosystem-scan.md) | 记录 OpenClaw 生态现状和可对标项目 | 产品、商务 |
 | [../research/2026-03-29-quecpython-module-count-memory-study.md](../research/2026-03-29-quecpython-module-count-memory-study.md) | 记录 QuecPython 模块数量、导入开销和当前 `qpyclaw-node` 文件结构的设备实测结论 | 架构、研发 |
-| [../../discussion/2026-03-26-project-conversation-log.md](../../discussion/2026-03-26-project-conversation-log.md) | 记录本轮讨论和决策轨迹，供复盘 | 所有人 |
 
 ## 推荐阅读顺序
 
@@ -37,7 +36,7 @@ flowchart TD
   K --> L["07 Runtime 模块收敛方案"]
   L --> M["01 生态扫描"]
   M --> N["模块数量与内存实测"]
-  N --> O["讨论复盘"]
+  N --> O["公开资料闭环"]
 ```
 
 ## 当前文档阶段

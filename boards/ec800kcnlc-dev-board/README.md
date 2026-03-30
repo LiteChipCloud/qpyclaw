@@ -103,13 +103,7 @@ flowchart TD
 4. 插卡后完成蜂窝驻网、PDP 和 IP 探测。
 5. 完成 `qpy.net.ifconfig` 与 `qpy.net.diag` 实测。
 
-相关证据见：
-
-1. `docs/bringup/evidence/ec800kcnlc-usr-before-reset.json`
-2. `docs/bringup/evidence/ec800kcnlc-usr-after-qpyclaw-node-deploy.json`
-3. `docs/bringup/evidence/ec800kcnlc-runtime-smoke.json`
-4. `docs/bringup/evidence/ec800kcnlc-qpy-ifconfig-long-wait.json`
-5. `docs/bringup/evidence/ec800kcnlc-qpy-netdiag-summary.json`
+相关联调证据已归档于内部 bring-up 记录，公开仓库不附带原始过程文件。
 
 ## 8.1 插卡后的板级判断
 

@@ -182,7 +182,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Probe TLS/WSS stages on a QuecPython device.")
     parser.add_argument("--port", default="COM14")
     parser.add_argument("--baud", type=int, default=115200)
-    parser.add_argument("--host", default="282r41l383.oicp.vip")
+    parser.add_argument("--host", default="your-public-bridge.example.com")
     parser.add_argument("--port-num", type=int, default=443)
     parser.add_argument("--path", default="/")
     parser.add_argument("--timeout", type=int, default=45)

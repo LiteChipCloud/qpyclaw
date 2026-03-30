@@ -3,13 +3,13 @@
 # Option A:
 #   Caddy listens locally on 127.0.0.1:18443 with a local/self-managed cert.
 #   PeanutShell TCP 10503 -> 127.0.0.1:18443
-#   Device uses: wss://282r41l383.oicp.vip:10503
+#   Device uses: wss://your-public-bridge.example.com:10503
 #
 # Option B:
 #   Caddy listens on 127.0.0.1:8080 behind PeanutShell HTTPS mapping.
 #   This only works if PeanutShell HTTPS preserves websocket upgrade end-to-end.
 
-282r41l383.oicp.vip:18443 {
+your-public-bridge.example.com:18443 {
     tls C:\path\to\openclaw-fullchain.pem C:\path\to\openclaw-privkey.pem
     reverse_proxy 127.0.0.1:18789
 }

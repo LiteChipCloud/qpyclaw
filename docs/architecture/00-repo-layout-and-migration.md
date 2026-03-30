@@ -26,7 +26,6 @@ C:\Users\kingd\Desktop\code\lcc-ai-team\embed\ec800m_audio_board\code\project\qp
 ```mermaid
 flowchart TD
   R["qpyclaw"] --> DOC["docs"]
-  R --> DISC["discussion"]
   R --> B["boards"]
   R --> E["embed"]
   R --> DT["desktop"]
@@ -114,7 +113,7 @@ embed/qpyclaw-node/examples/<board>/
 | 旧路径 | 新路径 | 说明 |
 | --- | --- | --- |
 | `README.md` | `README.md` | 已迁入并重写 |
-| `discussion/` | `discussion/` | 原样迁入 |
+| `discussion/` | 不进入公开仓库 | 对话纪要与复盘改为私有协作资料 |
 | `docs/product/` | `docs/product/` | 原样迁入 |
 | `docs/architecture/` | `docs/architecture/` | 原样迁入并持续更新 |
 | `docs/research/` | `docs/research/` | 原样迁入 |

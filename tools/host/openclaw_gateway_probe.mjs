@@ -6,9 +6,9 @@ const DEFAULT_PROTOCOL_VERSION = 3;
 const DEFAULT_TIMEOUT_MS = 8000;
 const DEFAULT_CANDIDATES = [
   "ws://127.0.0.1:18789",
-  "ws://282r41l383.oicp.vip:10503",
-  "wss://282r41l383.oicp.vip",
-  "wss://282r41l383.oicp.vip:10503",
+  "ws://your-public-bridge.example.com:10503",
+  "wss://your-public-bridge.example.com",
+  "wss://your-public-bridge.example.com:10503",
 ];
 
 function parseArgs(argv) {

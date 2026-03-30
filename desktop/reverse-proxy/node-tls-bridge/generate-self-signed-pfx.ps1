@@ -1,7 +1,7 @@
 param(
-    [string]$DnsName = "282r41l383.oicp.vip",
+    [string]$DnsName = "your-public-bridge.example.com",
     [string]$OutDir = ".\\certs",
-    [string]$Password = "qpyclaw-dev-pass"
+    [string]$Password = "replace_with_dev_passphrase"
 )
 
 $ErrorActionPreference = "Stop"

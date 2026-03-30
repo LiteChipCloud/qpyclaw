@@ -117,8 +117,7 @@ qpyclaw/
 │  ├─ public/
 │  ├─ architecture/
 │  ├─ product/
-│  ├─ research/
-│  └─ bringup/
+│  └─ research/
 ├─ embed/
 │  └─ qpyclaw-node/
 │     ├─ deploy/
@@ -126,7 +125,7 @@ qpyclaw/
 │     └─ runtime/
 ├─ tools/
 │  └─ host/
-└─ discussion/
+└─ desktop/
 ```
 
 ## 文档入口
@@ -173,7 +172,7 @@ qpyclaw/
 
 1. 当前仓库已适合以开发者预览形式公开
 2. 当前仍不是已冻结 API 的稳定 SDK
-3. 在将仓库切换为 public 前，仍建议复核 `docs/bringup/`、`discussion/`、`review/` 等内部工程内容
+3. 首版公开仓库已移除内部 bring-up、review 与对话沉淀，仅保留适合公开的工程资料
 
 ## 开源许可
 

@@ -1,4 +1,0 @@
-{
-  "ok": false,
-  "raw": "<CR><LF>>>> <CR><LF>>>> <CR><LF>>>> import usys as sys<CR><LF>>>> import ujson<CR><LF>>>> sys.path.append('/usr') if '/usr' not in sys.path else None<CR><LF>>>> import app.config as cfg<CR><LF>>>> from app.runtime_state import RuntimeState<CR><LF>>>> from app.tool_runner import ToolRunner<CR><LF>>>> state=RuntimeState(cfg)<CR><LF>>>> runner=ToolRunner(cfg,state)<CR><LF>>>> diag=runner.execute({'request_id':'probe-netdiag','tool':'qpy.net.diag','args':{}})<CR><LF>"
-}

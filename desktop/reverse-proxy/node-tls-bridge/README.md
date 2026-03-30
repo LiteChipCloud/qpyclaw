@@ -10,7 +10,7 @@ This is the simplest Windows-native path when:
 
 ```text
 qpyclaw-node
-  -> wss://282r41l383.oicp.vip:10503
+  -> wss://your-public-bridge.example.com:10503
   -> PeanutShell TCP 10503
   -> 127.0.0.1:18443
   -> node openclaw_tls_bridge.mjs
@@ -24,7 +24,7 @@ PowerShell:
 
 ```powershell
 Set-Location C:\Users\kingd\Desktop\code\lcc-ai-team\embed\project\qpyclaw\desktop\reverse-proxy\node-tls-bridge
-.\generate-self-signed-pfx.ps1 -DnsName 282r41l383.oicp.vip -OutDir .\certs -Password "qpyclaw-dev-pass"
+.\generate-self-signed-pfx.ps1 -DnsName your-public-bridge.example.com -OutDir .\certs -Password "replace_with_dev_passphrase"
 ```
 
 ## 2. Start The TLS Bridge
@@ -37,7 +37,7 @@ $env:TLS_BRIDGE_LISTEN_PORT = "18443"
 $env:TLS_BRIDGE_UPSTREAM_HOST = "127.0.0.1"
 $env:TLS_BRIDGE_UPSTREAM_PORT = "18789"
 $env:TLS_BRIDGE_PFX_FILE = "C:\Users\kingd\Desktop\code\lcc-ai-team\embed\project\qpyclaw\desktop\reverse-proxy\node-tls-bridge\certs\openclaw-tls-bridge.pfx"
-$env:TLS_BRIDGE_PFX_PASSPHRASE = "qpyclaw-dev-pass"
+$env:TLS_BRIDGE_PFX_PASSPHRASE = "replace_with_dev_passphrase"
 node .\openclaw_tls_bridge.mjs
 ```
 
@@ -59,7 +59,7 @@ to:   127.0.0.1:18443
 Public address remains:
 
 ```text
-282r41l383.oicp.vip:10503
+your-public-bridge.example.com:10503
 ```
 
 ## 4. Device URL
@@ -67,7 +67,7 @@ Public address remains:
 Set device local override to:
 
 ```python
-OPENCLAW_WS_URL = "wss://282r41l383.oicp.vip:10503"
+OPENCLAW_WS_URL = "wss://your-public-bridge.example.com:10503"
 ```
 
 ## Notes

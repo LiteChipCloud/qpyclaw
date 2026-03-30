@@ -82,7 +82,7 @@
 | API 冻结 | 尚未冻结，当前仍允许 runtime 与 host tool 持续演进 |
 | 语音全链路 | 板级能力在推进，但未纳入稳定对外承诺 |
 | 安全模型 | 当前以“先打通能力，再加约束”为原则，生产约束仍需继续补齐 |
-| 文档分层 | `docs/public/` 可对外；`docs/bringup/` 更偏内部工程证据 |
+| 文档分层 | 当前公开仓库仅保留适合对外发布的 `docs/public/`、`docs/architecture/`、`docs/product/` 与 `docs/research/` |
 
 ## 6. 本次发布的重要工程约定
 

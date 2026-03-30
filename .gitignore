@@ -18,6 +18,3 @@ config_local.py
 **/config_local.py
 !**/config_local.example.py
 !**/config_local.py.example
-
-# Generated local review artifacts.
-review/tmp/

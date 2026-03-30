@@ -55,10 +55,9 @@
 
 ```text
 qpyclaw/
-├─ discussion/
 ├─ docs/
 │  ├─ architecture/
-│  ├─ bringup/
+│  ├─ public/
 │  ├─ product/
 │  └─ research/
 ├─ boards/
@@ -83,10 +82,9 @@ qpyclaw/
 
 | 路径 | 职责 |
 | --- | --- |
-| `discussion/` | 存放讨论纪要、设计决策与复盘 |
+| `docs/public/` | 存放面向开源用户的 Quickstart、配置样例与发布说明 |
 | `docs/product/` | 存放产品定位、PRD、路线图、商业边界 |
 | `docs/architecture/` | 存放系统架构、协议、数据结构 |
-| `docs/bringup/` | 存放板级 bring-up、下载部署、联调流程 |
 | `docs/research/` | 存放生态调研、竞品扫描、可行性记录 |
 | `embed/qpyclaw-node/runtime/` | 当前设备侧通用 runtime 目录 |
 | `embed/qpyclaw-node/examples/` | 按板型组织的组合示例、样例配置、接入说明 |
