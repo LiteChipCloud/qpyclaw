@@ -67,7 +67,7 @@ flowchart LR
 | 板级状态工具 | 已验证 | `qpy.board.status` / `qpy.audio.status` / `qpy.power.status` / `qpy.ui.status` |
 | 屏幕表情显示 | 已验证 | `qpy.ui.emotion.show` 已实测 |
 | 正式冷启动自启动 | 开发态 | 当前默认不启用正式 `main.py` 自启动 |
-| 语音通话全链路 | 进行中 | 板级基础已接入，但未作为稳定公开能力发布 |
+| 语音通话全链路 | 已验证 | KWS → VAD → ASR → Chat → TTS 全链路已在 EC800MCNLE 设备实测通过 |
 
 ## 已验证硬件矩阵
 

@@ -117,6 +117,56 @@ Probe current runtime without re-running dispatch:
 python C:\Users\kingd\Desktop\code\lcc-ai-team\embed\project\qpyclaw\tools\host\qpy_board_runtime_probe.py --port COM19 --skip-dispatch --json
 ```
 
+## qpyclaw Voice ASR Smoke
+
+Use this to verify end-to-end ASR on an EC800MCNLE device with the DashScope
+voice sidecar.
+
+Modes:
+
+1. **natural** (default) — exec `_main.py`, let runtime auto-enter `listening`,
+   user speaks into mic during the hands-off window, then query final state.
+2. **manual** — exec `_main.py`, manually set up audio capture pipeline, record
+   for N seconds, base64-encode, POST to sidecar `/api/asr`, print transcript.
+
+Natural mode (user speaks during 60s hands-off window):
+
+```powershell
+python C:\Users\kingd\Desktop\code\lcc-ai-team\embed\project\qpyclaw\tools\host\qpy_voice_asr_smoke.py --port COM6 --json
+```
+
+Manual mode (5s recording window):
+
+```powershell
+python C:\Users\kingd\Desktop\code\lcc-ai-team\embed\project\qpyclaw\tools\host\qpy_voice_asr_smoke.py --port COM6 --mode manual --record-seconds 5 --json
+```
+
+## qpyclaw Voice Sidecar Health
+
+Use this to health-check, deploy, or restart the DashScope voice sidecar on
+the remote server via SSH.
+
+Checks: HTTP reachability, systemd service status, recent journal logs, and
+optionally a DashScope ASR probe with a known audio file.
+
+Quick status:
+
+```powershell
+python C:\Users\kingd\Desktop\code\lcc-ai-team\embed\project\qpyclaw\tools\host\qpy_voice_sidecar_health.py --json
+```
+
+Full check with ASR probe:
+
+```powershell
+python C:\Users\kingd\Desktop\code\lcc-ai-team\embed\project\qpyclaw\tools\host\qpy_voice_sidecar_health.py --asr-probe --json
+```
+
+Deploy updated app.py and restart:
+
+```powershell
+python C:\Users\kingd\Desktop\code\lcc-ai-team\embed\project\qpyclaw\tools\host\qpy_voice_sidecar_health.py --deploy --restart --json
+```
+
 ## OpenClaw Gateway Probe
 
 Use this before changing device-side runtime config. It probes candidate
