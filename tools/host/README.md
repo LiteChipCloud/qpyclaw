@@ -117,6 +117,30 @@ Probe current runtime without re-running dispatch:
 python C:\Users\kingd\Desktop\code\lcc-ai-team\embed\project\qpyclaw\tools\host\qpy_board_runtime_probe.py --port COM19 --skip-dispatch --json
 ```
 
+## qpyclaw Board Voice Smoke
+
+Run board-level voice smoke against a device.
+
+Modes:
+
+1. **text** (default) — run `qpyclaw_board_voice_smoke` on device, send a text
+   message through the voice pipeline, verify reply.
+2. **session** — run `qpyclaw_board_voice_session` for a full session lifecycle test.
+3. **asr** — exec `_main.py`, let runtime auto-listen, user speaks into mic
+   during hands-off window, verify real ASR transcript + reply.
+
+Text mode:
+
+```powershell
+python C:\Users\kingd\Desktop\code\lcc-ai-team\embed\project\qpyclaw\tools\host\qpy_board_voice_smoke.py --port COM6 --json
+```
+
+ASR mode (real mic, 60s hands-off):
+
+```powershell
+python C:\Users\kingd\Desktop\code\lcc-ai-team\embed\project\qpyclaw\tools\host\qpy_board_voice_smoke.py --port COM6 --mode asr --json
+```
+
 ## qpyclaw Voice ASR Smoke
 
 Use this to verify end-to-end ASR on an EC800MCNLE device with the DashScope
@@ -144,10 +168,10 @@ python C:\Users\kingd\Desktop\code\lcc-ai-team\embed\project\qpyclaw\tools\host\
 ## qpyclaw Voice Sidecar Health
 
 Use this to health-check, deploy, or restart the DashScope voice sidecar on
-the remote server via SSH.
+the remote server.  Supports SSH-based checks and direct HTTP integration tests.
 
-Checks: HTTP reachability, systemd service status, recent journal logs, and
-optionally a DashScope ASR probe with a known audio file.
+Checks: HTTP reachability, systemd service status, recent journal logs,
+DashScope ASR probe (via SSH), and HTTP ASR integration test (no SSH needed).
 
 Quick status:
 
@@ -155,10 +179,16 @@ Quick status:
 python C:\Users\kingd\Desktop\code\lcc-ai-team\embed\project\qpyclaw\tools\host\qpy_voice_sidecar_health.py --json
 ```
 
-Full check with ASR probe:
+Full check with DashScope ASR probe (SSH):
 
 ```powershell
 python C:\Users\kingd\Desktop\code\lcc-ai-team\embed\project\qpyclaw\tools\host\qpy_voice_sidecar_health.py --asr-probe --json
+```
+
+HTTP ASR integration test with a local audio file (no SSH):
+
+```powershell
+python C:\Users\kingd\Desktop\code\lcc-ai-team\embed\project\qpyclaw\tools\host\qpy_voice_sidecar_health.py --asr-http-test path/to/test.ogg --asr-auth-token YOUR_TOKEN --json
 ```
 
 Deploy updated app.py and restart:

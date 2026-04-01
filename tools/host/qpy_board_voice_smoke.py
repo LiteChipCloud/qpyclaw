@@ -5,6 +5,7 @@ Run board-level qpyclaw voice smoke against an EC800MCNLE device.
 Modes:
 1. text    -> /usr/qpyclaw_board_voice_smoke.py
 2. session -> /usr/qpyclaw_board_voice_session.py
+3. asr     -> exec _main.py, let runtime auto-listen, user speaks, verify ASR transcript
 """
 
 from __future__ import annotations
@@ -30,9 +31,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--baud", type=int, default=115200, help="REPL baudrate.")
     parser.add_argument(
         "--mode",
-        choices=["text", "session"],
+        choices=["text", "session", "asr"],
         default="text",
-        help="Smoke mode. text uses qpyclaw_board_voice_smoke, session uses qpyclaw_board_voice_session.",
+        help="Smoke mode. text=voice_smoke, session=voice_session, asr=real mic ASR verify.",
     )
     parser.add_argument(
         "--message",
@@ -72,6 +73,18 @@ def build_parser() -> argparse.ArgumentParser:
         type=int,
         default=3000,
         help="Extra device wait before collecting final session status in session mode.",
+    )
+    parser.add_argument(
+        "--asr-boot-wait",
+        type=float,
+        default=30.0,
+        help="(asr) Seconds to wait after exec _main.py for runtime to initialize.",
+    )
+    parser.add_argument(
+        "--asr-handsoff-seconds",
+        type=float,
+        default=60.0,
+        help="(asr) Seconds to keep REPL silent while user speaks into mic.",
     )
     parser.add_argument(
         "--include-raw",
@@ -230,6 +243,86 @@ def run_soft_reset(cli, port: str, baud: int, timeout: int, wait_seconds: float)
     }
 
 
+def _repl_kv(cli, port: str, baud: int, lines: List[str],
+             timeout: int = 15, settle_ms: int = 3000) -> Dict[str, str]:
+    """Send REPL lines and parse KEY=VALUE output into a dict."""
+    raw = cli.repl_send_lines(port, baud, lines, timeout=timeout, settle_ms=settle_ms)
+    results: Dict[str, str] = {"__raw__": raw}
+    for token in raw.replace("<CR>", "").replace("<LF>", "\n").split("\n"):
+        t = token.strip().lstrip("> ").strip()
+        if t and "=" in t and not t.startswith(">>>") and not t.startswith("_q"):
+            k, _, v = t.partition("=")
+            results[k] = v
+    return results
+
+
+_RUNTIME_REFS = [
+    'import sys as _sys,gc',
+    '_p="/usr"; _dummy=(_p in _sys.path) or _sys.path.append(_p)',
+    '_p="/usr/board"; _dummy=(_p in _sys.path) or _sys.path.append(_p)',
+    'import qpyclaw_node',
+    '_n=getattr(qpyclaw_node,"_LAST_NODE",None)',
+    '_e=getattr(_n,"extension",None) if _n else None',
+    '_b=getattr(_e,"board",None) if _e else None',
+    '_v=getattr(_b,"voice",None) if _b else None',
+]
+
+
+def run_asr_smoke(cli, port: str, baud: int, args) -> Dict[str, Any]:
+    """ASR smoke: exec _main.py, hands-off, then verify voice state."""
+    summary: Dict[str, Any] = {"mode": "asr", "ok": False}
+
+    # Step 1: exec _main.py
+    cli.repl_send_lines(
+        port, baud,
+        ['exec(open("/usr/_main.py").read())'],
+        timeout=max(15, int(args.timeout)),
+        settle_ms=5000,
+    )
+    time.sleep(float(args.asr_boot_wait))
+
+    # Step 2: verify voice controller ready
+    r = _repl_kv(cli, port, baud, _RUNTIME_REFS + [
+        'print("VOICE=" + str(_v is not None))',
+        'print("STATE=" + str(_v.state if _v else "N/A"))',
+    ], timeout=15, settle_ms=2000)
+    summary["boot_voice_ready"] = r.get("VOICE") == "True"
+    summary["boot_state"] = r.get("STATE", "")
+    if not summary["boot_voice_ready"]:
+        summary["error"] = "voice controller not ready after boot"
+        return summary
+
+    # Step 3: hands-off — user speaks
+    handsoff = float(args.asr_handsoff_seconds)
+    print("="*60)
+    print("  HANDS-OFF for %.0fs — SPEAK into the mic now!" % handsoff)
+    print("  Say wake word + sentence (e.g. '小智小智，今天天气怎么样')")
+    print("="*60)
+    time.sleep(handsoff)
+
+    # Step 4: query result once
+    r = _repl_kv(cli, port, baud, [
+        'print("STATE=" + str(_v.state))',
+        'print("TURNS=" + str(_v.turn_count))',
+        'print("TRANSCRIPT=" + str(_v.last_transcript))',
+        'print("TSRC=" + str(_v.last_transcript_source))',
+        'print("REPLY=" + str((_v.last_reply_text or "")[:200]))',
+        'print("ERROR=" + str(_v.last_error))',
+        'print("RESULT_OK=" + str(_v.last_result_ok))',
+    ], timeout=15, settle_ms=3000)
+    summary["state"] = r.get("STATE", "")
+    summary["turns"] = int(r.get("TURNS", "0") or 0)
+    summary["transcript"] = r.get("TRANSCRIPT", "")
+    summary["transcript_source"] = r.get("TSRC", "")
+    summary["reply"] = r.get("REPLY", "")
+    summary["error"] = r.get("ERROR", "")
+    summary["result_ok"] = r.get("RESULT_OK", "")
+    summary["ok"] = summary["turns"] > 0 and r.get("RESULT_OK") == "True"
+    if args.include_raw:
+        summary["raw"] = r.get("__raw__", "")
+    return summary
+
+
 def main() -> int:
     args = build_parser().parse_args()
     cli = load_qpy_fs_cli()
@@ -242,50 +335,59 @@ def main() -> int:
         "ok": False,
     }
 
-    if args.soft_reset:
-        summary["reset"] = run_soft_reset(
-            cli,
+    if args.mode == "asr":
+        summary = run_asr_smoke(cli, args.port, int(args.baud), args)
+        summary["port"] = args.port
+        summary["baud"] = int(args.baud)
+    else:
+        if args.soft_reset:
+            summary["reset"] = run_soft_reset(
+                cli,
+                args.port,
+                int(args.baud),
+                int(args.timeout),
+                float(args.reset_wait_seconds),
+            )
+
+        script = build_smoke_script(
+            args.mode,
+            args.message,
+            bool(args.open_audio),
+            int(args.session_post_wait_ms),
+        )
+        raw = cli.repl_send_lines(
             args.port,
             int(args.baud),
-            int(args.timeout),
-            float(args.reset_wait_seconds),
+            wrap_script_for_repl(script),
+            timeout=max(30, int(args.timeout)),
+            line_delay_ms=70,
+            settle_ms=max(8000, int(float(args.settle_seconds) * 1000)),
         )
+        try:
+            payload = extract_marked_json_object(raw, "QPY_BOARD_VOICE_SMOKE_JSON=")
+            summary["payload"] = payload
+            payload_err = str(payload.get("err") or "").strip()
+            if args.mode == "session":
+                session_payload = payload.get("session") or payload.get("result") or {}
+                summary["ok"] = bool(session_payload.get("last_result_ok")) and (not payload_err)
+            else:
+                summary["ok"] = bool((payload.get("result") or {}).get("ok")) and (not payload_err)
+        except Exception as exc:
+            summary["error"] = str(exc)
+            summary["ok"] = False
 
-    script = build_smoke_script(
-        args.mode,
-        args.message,
-        bool(args.open_audio),
-        int(args.session_post_wait_ms),
-    )
-    raw = cli.repl_send_lines(
-        args.port,
-        int(args.baud),
-        wrap_script_for_repl(script),
-        timeout=max(30, int(args.timeout)),
-        line_delay_ms=70,
-        settle_ms=max(8000, int(float(args.settle_seconds) * 1000)),
-    )
-    try:
-        payload = extract_marked_json_object(raw, "QPY_BOARD_VOICE_SMOKE_JSON=")
-        summary["payload"] = payload
-        payload_err = str(payload.get("err") or "").strip()
-        if args.mode == "session":
-            session_payload = payload.get("session") or payload.get("result") or {}
-            summary["ok"] = bool(session_payload.get("last_result_ok")) and (not payload_err)
-        else:
-            summary["ok"] = bool((payload.get("result") or {}).get("ok")) and (not payload_err)
-    except Exception as exc:
-        summary["error"] = str(exc)
-        summary["ok"] = False
-
-    if args.include_raw:
-        summary["raw"] = raw
+        if args.include_raw:
+            summary["raw"] = raw
 
     if args.json:
         print(json.dumps(summary, ensure_ascii=False, indent=2))
     else:
         print("mode:", summary["mode"])
         print("ok:", summary["ok"])
+        if summary.get("transcript"):
+            print("transcript:", summary["transcript"])
+        if summary.get("reply"):
+            print("reply:", summary["reply"])
         if "payload" in summary:
             print("reply_text:", ((summary["payload"].get("result") or {}).get("reply_text") or ""))
     return 0 if summary["ok"] else 1
