@@ -13,6 +13,10 @@ venv/
 .pytest_cache/
 .mypy_cache/
 
+# Internal dev notes and smoke outputs.
+discussion/
+review/
+
 # Local device config and secrets.
 config_local.py
 **/config_local.py

@@ -60,23 +60,45 @@ def _existing_board_runtime(module):
     return None
 
 
-def main():
+def _configure_existing_runtime(runtime, enable_voice=False, voice_auto_start=False):
+    if runtime is None:
+        return None
+    extension = getattr(runtime, "extension", None)
+    if extension is None or not hasattr(extension, "board"):
+        return runtime
+    board = extension.board
+    if board is None or not hasattr(board, "voice") or board.voice is None:
+        return runtime
+    if enable_voice:
+        board.voice.configure(enabled=True, auto_start=voice_auto_start)
+        if voice_auto_start:
+            board.voice.start()
+    return runtime
+
+
+def main(open_audio=False, step_delay_ms=20, enable_voice=False, voice_auto_start=False):
     qpyclaw_node = _load_qpyclaw_node()
     existing = _existing_board_runtime(qpyclaw_node)
     if existing is not None:
-        return existing
+        return _configure_existing_runtime(
+            existing,
+            enable_voice=enable_voice,
+            voice_auto_start=voice_auto_start,
+        )
 
     extension = create_qpyclaw_extension(
         enable_charge=True,
         enable_display=True,
-        open_audio=False,
+        open_audio=open_audio,
+        enable_voice=enable_voice,
+        voice_auto_start=voice_auto_start,
     )
     runtime = qpyclaw_node.create_runtime(extension=extension)
 
     while True:
         runtime.step()
         try:
-            _utime.sleep_ms(20)
+            _utime.sleep_ms(step_delay_ms)
         except Exception:
             pass
 

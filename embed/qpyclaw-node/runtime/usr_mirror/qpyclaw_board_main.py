@@ -22,6 +22,40 @@ _ensure_path("board")
 from board_bootstrap import create_qpyclaw_extension
 
 
+def _string(value):
+    if value is None:
+        return ""
+    try:
+        return str(value)
+    except Exception:
+        return ""
+
+
+def _normalize_bool(value, default=False):
+    if value is None:
+        return bool(default)
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, int):
+        return value != 0
+    text = _string(value).strip().lower()
+    if text in ("1", "true", "yes", "on", "enable", "enabled"):
+        return True
+    if text in ("0", "false", "no", "off", "disable", "disabled"):
+        return False
+    return bool(default)
+
+
+def _cfg_bool(cfg, name, default=False):
+    if cfg is None:
+        return bool(default)
+    try:
+        value = getattr(cfg, name)
+    except Exception:
+        return bool(default)
+    return _normalize_bool(value, default)
+
+
 def _load_qpyclaw_node():
     module = None
     try:
@@ -55,7 +89,12 @@ def _existing_board_runtime(module):
         snapshot = node.debug_snapshot()
     except Exception:
         return None
-    if bool(snapshot.get("has_runtime")) and bool(snapshot.get("has_extension")):
+    state = snapshot.get("state") or {}
+    if (
+        bool(snapshot.get("has_runtime"))
+        and bool(snapshot.get("has_extension"))
+        and int(state.get("last_tick_ms") or 0) > 0
+    ):
         return node
     return None
 
@@ -66,10 +105,17 @@ def main():
     if existing is not None:
         return existing
 
+    cfg = getattr(qpyclaw_node, "config", None)
+    voice_enabled = _cfg_bool(cfg, "BOARD_VOICE_ENABLED", _cfg_bool(cfg, "VOICE_ENABLED", False))
+    open_audio = _cfg_bool(cfg, "BOARD_OPEN_AUDIO", voice_enabled)
+    voice_auto_start = _cfg_bool(cfg, "BOARD_VOICE_AUTO_START", voice_enabled)
+
     extension = create_qpyclaw_extension(
         enable_charge=True,
         enable_display=True,
-        open_audio=False,
+        open_audio=open_audio,
+        enable_voice=voice_enabled,
+        voice_auto_start=voice_auto_start,
     )
     runtime = qpyclaw_node.create_runtime(extension=extension)
 

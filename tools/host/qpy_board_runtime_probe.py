@@ -103,12 +103,24 @@ def normalize_exec_path(path: str) -> str:
     return text or "usr/qpyclaw_board_dispatch.py"
 
 
-def build_dispatch_lines(dispatch_path: str) -> List[str]:
+def dispatch_module_name(dispatch_path: str) -> str:
     exec_path = normalize_exec_path(dispatch_path)
+    name = pathlib.PurePosixPath(exec_path).name
+    if name.lower().endswith(".py"):
+        name = name[:-3]
+    return name or "qpyclaw_board_dispatch"
+
+
+def build_dispatch_lines(dispatch_path: str) -> List[str]:
+    module_name = dispatch_module_name(dispatch_path)
     return [
-        "import example",
-        "print('QPY_BOARD_DISPATCH_OK')",
-        "example.exec('%s')" % single_quote_qpy(exec_path),
+        "import sys as _sys",
+        "_p='/usr'; _dummy=(_p in _sys.path) or _sys.path.append(_p)",
+        "_p='usr'; _dummy=(_p in _sys.path) or _sys.path.append(_p)",
+        "_mods=getattr(_sys,'modules',None)",
+        "(_mods.pop('%s') if (_mods is not None and '%s' in _mods) else None)" % (module_name, module_name),
+        "import %s as _dispatch" % module_name,
+        "print('QPY_BOARD_DISPATCH_OK=' + str(_dispatch.main()))",
     ]
 
 
@@ -184,10 +196,10 @@ def run_dispatch(cli, port: str, baud: int, dispatch_path: str, timeout: int) ->
         build_dispatch_lines(dispatch_path),
         timeout=max(15, int(timeout)),
         line_delay_ms=80,
-        settle_ms=1200,
+        settle_ms=3500,
     )
     has_error = any(x in raw for x in ["ERR:", "Traceback", "ParserError", "At line:"])
-    ok = bool("QPY_BOARD_DISPATCH_OK" in raw) and (not has_error)
+    ok = bool("QPY_BOARD_DISPATCH_OK=True" in raw) and (not has_error)
     return {
         "ok": ok,
         "dispatch_path": dispatch_path,

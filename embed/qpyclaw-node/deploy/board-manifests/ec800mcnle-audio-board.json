@@ -8,6 +8,9 @@
     "board_power.py",
     "board_display.py",
     "board_ui.py",
+    "board_voice_controller.py",
+    "board_remote_asr.py",
+    "board_remote_tts.py",
     "board_bootstrap.py"
   ],
   "preserve_remote_files": [],

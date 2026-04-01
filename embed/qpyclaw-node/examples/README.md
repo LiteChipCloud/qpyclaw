@@ -14,7 +14,7 @@
 | 目录 | 作用 |
 | --- | --- |
 | `ec800kcnlc-dev-board/` | 当前无外设主线开发板示例 |
-| `ec800mcnle-audio-board/` | 音频板示例，组合音频板专有代码与通用 node runtime |
+| `ec800mcnle-audio-board/` | 音频板示例，组合音频板专有代码与通用 node runtime，并包含文本语音 smoke 与板级语音会话控制器示例 |
 
 ## 三层关系
 

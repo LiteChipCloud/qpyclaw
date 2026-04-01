@@ -68,6 +68,33 @@ def build_parser() -> argparse.ArgumentParser:
         help="When board smoke is enabled, also verify write-path board tools and restore state.",
     )
     parser.add_argument(
+        "--voice-chat-message",
+        default="",
+        help="Optional bare-runtime voice.chat message to execute after base smoke.",
+    )
+    parser.add_argument(
+        "--voice-chat-timeout-ms",
+        type=int,
+        default=45000,
+        help="voice.chat timeout in milliseconds when --voice-chat-message is set.",
+    )
+    parser.add_argument(
+        "--voice-session-key",
+        default="main",
+        help="voice.chat session_key when --voice-chat-message is set.",
+    )
+    parser.add_argument(
+        "--voice-chat-history-limit",
+        type=int,
+        default=8,
+        help="voice.chat history_limit when --voice-chat-message is set.",
+    )
+    parser.add_argument(
+        "--voice-chat-subscribe",
+        action="store_true",
+        help="Enable subscribe=True for optional voice.chat probe.",
+    )
+    parser.add_argument(
         "--include-raw",
         action="store_true",
         help="Include raw REPL transcript in JSON output.",
@@ -92,6 +119,7 @@ def single_quote_qpy(text: str) -> str:
 def build_import_lines() -> List[str]:
     return [
         "import sys as _sys",
+        "import gc",
         "_mods=getattr(_sys,'modules',{})",
         "_dummy=('qpyclaw_node' in _mods) and _mods.pop('qpyclaw_node')",
         "_dummy=('config_local' in _mods) and _mods.pop('config_local')",
@@ -106,8 +134,14 @@ def build_import_lines() -> List[str]:
         "_p='usr'; _dummy=(_p in _sys.path) or _sys.path.append(_p)",
         "_p='/usr/app'; _dummy=(_p in _sys.path) or _sys.path.append(_p)",
         "_p='app'; _dummy=(_p in _sys.path) or _sys.path.append(_p)",
-        "import qpyclaw_node",
-        "print('QPY_IMPORT_OK')",
+        "gc.collect()",
+        "_qpy_import_ok='QPY_IMPORT_' + 'OK'",
+        "_qpy_import_error='QPY_IMPORT_' + 'ERROR='",
+        "try:",
+        " import qpyclaw_node",
+        " print(_qpy_import_ok)",
+        "except Exception as _qpy_import_exc:",
+        " print(_qpy_import_error + repr(_qpy_import_exc))",
     ]
 
 
@@ -277,6 +311,7 @@ def build_exec_board_prepare_lines() -> List[str]:
     lines = [
         "import sys as _sys",
         "import ujson",
+        "import gc",
         "_p='/usr'; _dummy=(_p in _sys.path) or _sys.path.append(_p)",
         "_p='usr'; _dummy=(_p in _sys.path) or _sys.path.append(_p)",
         "_p='/usr/app'; _dummy=(_p in _sys.path) or _sys.path.append(_p)",
@@ -294,6 +329,7 @@ def build_exec_board_prepare_lines() -> List[str]:
         "_dummy=('board_power' in _mods) and _mods.pop('board_power')",
         "_dummy=('board_display' in _mods) and _mods.pop('board_display')",
         "_dummy=('board_ui' in _mods) and _mods.pop('board_ui')",
+        "gc.collect()",
         "print('QPY_SMOKE_BOARD_PREP_OK')",
     ]
     return lines
@@ -320,10 +356,12 @@ def build_exec_bootstrap_lines(board_smoke: bool) -> List[str]:
     lines = [
         "import sys as _sys",
         "import ujson",
+        "import gc",
         "_p='/usr'; _dummy=(_p in _sys.path) or _sys.path.append(_p)",
         "_p='usr'; _dummy=(_p in _sys.path) or _sys.path.append(_p)",
         "_p='/usr/app'; _dummy=(_p in _sys.path) or _sys.path.append(_p)",
         "_p='app'; _dummy=(_p in _sys.path) or _sys.path.append(_p)",
+        "gc.collect()",
         "import qpyclaw_node",
         "cfg = qpyclaw_node.config",
         "state = qpyclaw_node.RuntimeState(cfg)",
@@ -353,6 +391,59 @@ def build_exec_status_lines(fs_read_path: str, fs_read_max_bytes: int, board_smo
             ]
         )
     lines.append("print('QPY_SMOKE_STATUS_OK')")
+    return lines
+
+
+def build_exec_voice_chat_lines(
+    voice_chat_message: str,
+    voice_chat_timeout_ms: int,
+    voice_session_key: str,
+    voice_chat_subscribe: bool,
+    voice_chat_history_limit: int,
+) -> List[str]:
+    message = str(voice_chat_message or "")
+    lines = [
+        "_voice_before = qpyclaw_node.voice_status()",
+        "_voice_probe = {'enabled': False}",
+    ]
+    if not message:
+        return lines
+    safe_message = repr(message)
+    safe_session_key = repr(str(voice_session_key or "main"))
+    subscribe_text = "True" if bool(voice_chat_subscribe) else "False"
+    lines.extend(
+        [
+            "_voice_probe = {'enabled': True, 'message': %s}" % safe_message,
+            "try:",
+            " _voice_result = qpyclaw_node.voice_chat(%s, session_key=%s, timeout_ms=%d, subscribe=%s, history_limit=%d)"
+            % (
+                safe_message,
+                safe_session_key,
+                int(voice_chat_timeout_ms),
+                subscribe_text,
+                int(voice_chat_history_limit),
+            ),
+            " _voice_after = qpyclaw_node.voice_status()",
+            " _voice_probe = {'enabled': True, 'ok': True, 'message': %s, 'session_key': %s, 'timeout_ms': %d, 'subscribe': %s, 'history_limit': %d, 'result': _voice_result, 'before': _voice_before, 'after': _voice_after}"
+            % (
+                safe_message,
+                safe_session_key,
+                int(voice_chat_timeout_ms),
+                subscribe_text,
+                int(voice_chat_history_limit),
+            ),
+            "except Exception as _voice_exc:",
+            " _voice_after = qpyclaw_node.voice_status()",
+            " _voice_probe = {'enabled': True, 'ok': False, 'message': %s, 'session_key': %s, 'timeout_ms': %d, 'subscribe': %s, 'history_limit': %d, 'error': str(_voice_exc), 'before': _voice_before, 'after': _voice_after}"
+            % (
+                safe_message,
+                safe_session_key,
+                int(voice_chat_timeout_ms),
+                subscribe_text,
+                int(voice_chat_history_limit),
+            ),
+        ]
+    )
     return lines
 
 
@@ -433,6 +524,7 @@ def build_payload_lines(board_smoke: bool, board_write_smoke: bool) -> List[str]
         " 'fs_read_path': ((_fs_read.get('data') or {}).get('path') or '')",
         " 'fs_read_bytes': len((((_fs_read.get('data') or {}).get('content') or '')))",
         " 'loaded_domains': loaded_domains",
+        " 'voice_probe': (_g.get('_voice_probe') or {'enabled': False})",
     ]
     if board_smoke:
         payload_parts.extend(
@@ -498,6 +590,11 @@ def build_exec_script_lines(
     fs_read_max_bytes: int,
     board_smoke: bool,
     board_write_smoke: bool,
+    voice_chat_message: str,
+    voice_chat_timeout_ms: int,
+    voice_session_key: str,
+    voice_chat_subscribe: bool,
+    voice_chat_history_limit: int,
 ) -> List[str]:
     lines: List[str] = []
     if board_smoke:
@@ -507,6 +604,15 @@ def build_exec_script_lines(
     else:
         lines.extend(build_exec_bootstrap_lines(False))
     lines.extend(build_exec_status_lines(fs_read_path, fs_read_max_bytes, board_smoke))
+    lines.extend(
+        build_exec_voice_chat_lines(
+            voice_chat_message,
+            int(voice_chat_timeout_ms),
+            voice_session_key,
+            bool(voice_chat_subscribe),
+            int(voice_chat_history_limit),
+        )
+    )
     if board_smoke and board_write_smoke:
         lines.extend(build_exec_write_lines())
     lines.extend(build_payload_lines(board_smoke, board_write_smoke))
@@ -536,15 +642,50 @@ def wrap_script_for_repl(lines: List[str], chunk_size: int = 180) -> List[str]:
 
 
 def extract_payload(raw: str) -> Dict[str, Any]:
-    match = re.search(r"QPY_RUNTIME_SMOKE_JSON=(\{.*?\})", raw or "")
-    if not match:
+    marker = "QPY_RUNTIME_SMOKE_JSON="
+    text = raw or ""
+    start = text.rfind(marker)
+    if start < 0:
         raise ValueError("smoke payload not found in REPL output")
-    return json.loads(match.group(1))
+    start += len(marker)
+    while start < len(text) and text[start].isspace():
+        start += 1
+    if start >= len(text) or text[start] != "{":
+        raise ValueError("smoke payload json start not found")
+    depth = 0
+    in_string = False
+    escape = False
+    end = -1
+    idx = start
+    while idx < len(text):
+        ch = text[idx]
+        if in_string:
+            if escape:
+                escape = False
+            elif ch == "\\":
+                escape = True
+            elif ch == '"':
+                in_string = False
+        else:
+            if ch == '"':
+                in_string = True
+            elif ch == "{":
+                depth += 1
+            elif ch == "}":
+                depth -= 1
+                if depth == 0:
+                    end = idx + 1
+                    break
+        idx += 1
+    if end < 0:
+        raise ValueError("smoke payload json end not found")
+    return json.loads(text[start:end])
 
 
 def main() -> int:
     args = build_parser().parse_args()
     board_smoke = bool(args.board_smoke or args.board_write_smoke)
+    voice_probe_enabled = bool(str(args.voice_chat_message or "").strip())
     cli = load_qpy_fs_cli()
     raw_import = cli.repl_send_lines(
         args.port,
@@ -562,15 +703,23 @@ def main() -> int:
                 int(args.fs_read_max_bytes),
                 board_smoke,
                 bool(args.board_write_smoke),
+                args.voice_chat_message,
+                int(args.voice_chat_timeout_ms),
+                args.voice_session_key,
+                bool(args.voice_chat_subscribe),
+                int(args.voice_chat_history_limit),
             )
         )
+        exec_settle_ms = 16000 if board_smoke else 9000
+        if voice_probe_enabled:
+            exec_settle_ms = max(exec_settle_ms, int(args.voice_chat_timeout_ms) + 12000)
         raw_exec = cli.repl_send_lines(
             args.port,
             int(args.baud),
             exec_lines,
             timeout=max(30, int(args.timeout)),
             line_delay_ms=70,
-            settle_ms=(16000 if board_smoke else 9000),
+            settle_ms=exec_settle_ms,
         )
         raw = raw_import + "\n" + raw_exec
 
@@ -581,6 +730,7 @@ def main() -> int:
         "fs_read_max_bytes": int(args.fs_read_max_bytes),
         "board_smoke": board_smoke,
         "board_write_smoke": bool(args.board_write_smoke),
+        "voice_probe_enabled": voice_probe_enabled,
         "import_ok": bool("QPY_IMPORT_OK" in raw_import),
         "ok": False,
     }
@@ -640,6 +790,9 @@ def main() -> int:
                     and payload.get("ui_emotion_restore_value")
                     == (payload.get("ui_emotion_initial") or "neutral")
                 )
+        if voice_probe_enabled:
+            voice_probe = payload.get("voice_probe") or {}
+            ok = bool(ok and voice_probe.get("enabled") and voice_probe.get("ok"))
         summary["ok"] = ok
     except Exception as e:
         summary["error"] = str(e)

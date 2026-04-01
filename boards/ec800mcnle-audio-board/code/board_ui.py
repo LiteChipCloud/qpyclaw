@@ -15,6 +15,11 @@ class BoardEmojiUi(object):
         self.lv = None
         self.screen = None
         self.screen_img = None
+        self.overlay = None
+        self.overlay_status_label = None
+        self.overlay_message_label = None
+        self.overlay_status_text = ""
+        self.overlay_message_text = ""
         self.current_emoji = ""
         self.current_src = ""
         self.current_src_candidates = []
@@ -43,6 +48,26 @@ class BoardEmojiUi(object):
             "embarrassed",
             "confused",
         ]
+
+    def _string(self, value):
+        if value is None:
+            return ""
+        try:
+            return str(value)
+        except Exception:
+            return ""
+
+    def _normalize_overlay_text(self, value, limit=0):
+        text = self._string(value).replace("\r", "\n")
+        rows = []
+        for row in text.split("\n"):
+            line = row.strip()
+            if line:
+                rows.append(line)
+        text = "\n".join(rows).strip()
+        if limit and len(text) > limit:
+            text = text[: max(0, int(limit) - 3)].rstrip() + "..."
+        return text
 
     def _media_prefixes(self):
         rows = []
@@ -95,9 +120,69 @@ class BoardEmojiUi(object):
         self.screen_img.set_style_bg_color(self.lv.color_hex(0x000000), 0)
         self.screen_img.set_style_bg_opa(self.lv.OPA.COVER, 0)
         self.screen_img.set_size(self.display.width, self.display.height)
+        self._ensure_overlay()
         self.lv.scr_load(self.screen)
         self.ready = True
         self.show_emotion("neutral")
+        return True
+
+    def _ensure_overlay(self):
+        if self.overlay is not None:
+            return True
+        self.overlay = self.lv.obj(self.screen)
+        self.overlay.set_size(self.display.width - 12, 76)
+        self.overlay.align(self.lv.ALIGN.BOTTOM_MID, 0, -6)
+        self.overlay.set_scrollbar_mode(self.lv.SCROLLBAR_MODE.OFF)
+        try:
+            self.overlay.clear_flag(self.lv.obj.FLAG.SCROLLABLE)
+        except Exception:
+            pass
+        try:
+            self.overlay.set_style_radius(10, 0)
+        except Exception:
+            pass
+        try:
+            self.overlay.set_style_border_width(0, 0)
+        except Exception:
+            pass
+        self.overlay.set_style_bg_color(self.lv.color_hex(0x101010), 0)
+        self.overlay.set_style_bg_opa(168, 0)
+        try:
+            self.overlay.set_style_pad_all(0, 0)
+        except Exception:
+            pass
+
+        self.overlay_status_label = self.lv.label(self.overlay)
+        self.overlay_status_label.set_width(self.display.width - 28)
+        self.overlay_status_label.set_long_mode(self.lv.label.LONG.CLIP)
+        self.overlay_status_label.align(self.lv.ALIGN.TOP_LEFT, 8, 6)
+        try:
+            self.overlay_status_label.set_style_text_color(self.lv.color_hex(0xFFFFFF), 0)
+        except Exception:
+            pass
+        try:
+            self.overlay_status_label.set_style_text_font(self.lv.font_montserrat_14, 0)
+        except Exception:
+            pass
+        self.overlay_status_label.set_text("")
+
+        self.overlay_message_label = self.lv.label(self.overlay)
+        self.overlay_message_label.set_size(self.display.width - 28, 42)
+        self.overlay_message_label.set_long_mode(self.lv.label.LONG.WRAP)
+        self.overlay_message_label.align(self.lv.ALIGN.TOP_LEFT, 8, 26)
+        try:
+            self.overlay_message_label.set_style_text_color(self.lv.color_hex(0xE8E8E8), 0)
+        except Exception:
+            pass
+        try:
+            self.overlay_message_label.set_style_text_font(self.lv.font_montserrat_14, 0)
+        except Exception:
+            pass
+        self.overlay_message_label.set_text("")
+        try:
+            self.overlay.add_flag(self.lv.obj.FLAG.HIDDEN)
+        except Exception:
+            pass
         return True
 
     def _emotion_path(self, emotion):
@@ -173,6 +258,56 @@ class BoardEmojiUi(object):
         self._refresh()
         return True
 
+    def show_overlay(self, status=None, message=None):
+        self.ensure_ready()
+        self._ensure_overlay()
+        if status is not None:
+            self.overlay_status_text = self._normalize_overlay_text(status, limit=28)
+        if message is not None:
+            self.overlay_message_text = self._normalize_overlay_text(message, limit=120)
+        if (not self.overlay_status_text) and (not self.overlay_message_text):
+            return self.clear_overlay()
+        try:
+            self.overlay.clear_flag(self.lv.obj.FLAG.HIDDEN)
+        except Exception:
+            pass
+        try:
+            self.overlay_status_label.set_text(self.overlay_status_text)
+        except Exception:
+            pass
+        try:
+            self.overlay_message_label.set_text(self.overlay_message_text)
+        except Exception:
+            pass
+        self._refresh()
+        return True
+
+    def show_status(self, status):
+        return self.show_overlay(status=status, message=None)
+
+    def show_message(self, message):
+        return self.show_overlay(status=None, message=message)
+
+    def clear_overlay(self):
+        self.ensure_ready()
+        self._ensure_overlay()
+        self.overlay_status_text = ""
+        self.overlay_message_text = ""
+        try:
+            self.overlay_status_label.set_text("")
+        except Exception:
+            pass
+        try:
+            self.overlay_message_label.set_text("")
+        except Exception:
+            pass
+        try:
+            self.overlay.add_flag(self.lv.obj.FLAG.HIDDEN)
+        except Exception:
+            pass
+        self._refresh()
+        return True
+
     def show_fill(self, color):
         self.display.ensure_ready()
         self.passive_mode = "fill"
@@ -186,10 +321,13 @@ class BoardEmojiUi(object):
     def _refresh(self):
         if not self.ready:
             return False
-        try:
-            self.screen_img.invalidate()
-        except Exception:
-            pass
+        for obj in [self.screen_img, self.overlay, self.overlay_status_label, self.overlay_message_label]:
+            if obj is None:
+                continue
+            try:
+                obj.invalidate()
+            except Exception:
+                pass
         count = 0
         while count < 3:
             self.display.pump()
@@ -202,15 +340,19 @@ class BoardEmojiUi(object):
         return True
 
     def show_booting(self):
+        self.show_overlay(status="BOOTING", message="")
         return self.show_emotion("thinking")
 
     def show_ready(self):
+        self.show_overlay(status="READY", message=None)
         return self.show_emotion("neutral")
 
     def show_waiting(self):
+        self.show_overlay(status="WAITING", message=None)
         return self.show_emotion("sleepy")
 
     def show_error(self):
+        self.show_overlay(status="ERROR", message=None)
         return self.show_emotion("confused")
 
     def tick(self):
@@ -235,6 +377,9 @@ class BoardEmojiUi(object):
             "current_src_candidates": self.current_src_candidates,
             "current_path": current_path,
             "current_asset_exists": current_exists,
+            "overlay_status_text": self.overlay_status_text,
+            "overlay_message_text": self.overlay_message_text,
+            "overlay_visible": bool(self.overlay_status_text or self.overlay_message_text),
             "media_prefix": self.media_prefix,
             "resolved_media_prefix": catalog["resolved_media_prefix"],
             "media_prefix_candidates": catalog["media_prefix_candidates"],

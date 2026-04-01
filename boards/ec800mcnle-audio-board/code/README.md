@@ -42,7 +42,9 @@ flowchart LR
 2. `board_power.py`
 3. `board_display.py`
 4. `board_ui.py`
-5. `board_bootstrap.py`
+5. `board_voice_controller.py`
+6. `board_remote_asr.py`
+7. `board_bootstrap.py`
 
 ## 当前板级扩展能力
 

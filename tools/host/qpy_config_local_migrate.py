@@ -84,11 +84,45 @@ def read_remote_text(cli, port: str, baud: int, remote_path: str, timeout: int) 
         line_delay_ms=70,
         settle_ms=4000,
     )
-    match = re.search(r"QPY_CONFIG_LOCAL_JSON=(\{.*?\})", raw or "")
-    if not match:
+    marker = "QPY_CONFIG_LOCAL_JSON="
+    text = raw or ""
+    start = text.rfind(marker)
+    if start < 0:
+        return {"ok": False, "raw": raw, "content": ""}
+    start += len(marker)
+    while start < len(text) and text[start].isspace():
+        start += 1
+    if start >= len(text) or text[start] != "{":
+        return {"ok": False, "raw": raw, "content": ""}
+    depth = 0
+    in_string = False
+    escape = False
+    end = -1
+    idx = start
+    while idx < len(text):
+        ch = text[idx]
+        if in_string:
+            if escape:
+                escape = False
+            elif ch == "\\":
+                escape = True
+            elif ch == '"':
+                in_string = False
+        else:
+            if ch == '"':
+                in_string = True
+            elif ch == "{":
+                depth += 1
+            elif ch == "}":
+                depth -= 1
+                if depth == 0:
+                    end = idx + 1
+                    break
+        idx += 1
+    if end < 0:
         return {"ok": False, "raw": raw, "content": ""}
     try:
-        payload = json.loads(match.group(1))
+        payload = json.loads(text[start:end])
     except Exception:
         return {"ok": False, "raw": raw, "content": ""}
     return {
