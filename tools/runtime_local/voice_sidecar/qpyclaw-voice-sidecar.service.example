@@ -1,0 +1,17 @@
+[Unit]
+Description=qpyclaw DashScope Voice Sidecar
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/qpyclaw/voice_sidecar
+EnvironmentFile=/etc/qpyclaw-voice-sidecar.env
+ExecStart=/opt/qpyclaw/voice_sidecar/.venv/bin/python /opt/qpyclaw/voice_sidecar/app.py
+Restart=always
+RestartSec=2
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target

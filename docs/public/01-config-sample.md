@@ -68,7 +68,36 @@ REMOTE_SIGNER_HTTP_URL = "http://your-signer.example.com:8787/sign"
 REMOTE_SIGNER_HTTP_AUTH_TOKEN = "replace_with_real_signer_token"
 ```
 
-## 5. 关键字段说明
+## 5. 官方网关文本语音模式
+
+当前已经验证通过的最小配置思路是：
+
+1. `node` 连接继续走 `remote_signer_http`
+2. `voice operator` 复用同一网关地址
+3. `voice operator` 先复用 node token
+4. `voice operator` 客户端形态对齐官方 `cli`
+
+推荐附加字段如下：
+
+```python
+VOICE_ENABLED = True
+VOICE_MAIN_SESSION_KEY = "main"
+VOICE_OPERATOR_WS_URL = OPENCLAW_WS_URL
+VOICE_OPERATOR_REUSE_NODE_TOKEN = True
+VOICE_OPERATOR_CLIENT_ID = "cli"
+VOICE_OPERATOR_CLIENT_MODE = "cli"
+VOICE_OPERATOR_CLIENT_DISPLAY_NAME = "qpyclaw voice cli"
+VOICE_CHAT_SUBSCRIBE = False
+```
+
+重要说明：
+
+1. 第一次建立 `operator(cli)` 会话时，官方网关可能返回 `NOT_PAIRED: pairing required`
+2. 这通常是一次 `repair pairing` 门禁，不是设备侧代码异常
+3. 在网关主机批准一次最新 pending request 后，再重试即可
+4. 当前已验证 `chat.send + chat.history` 可以跑通文本语音 smoke
+
+## 6. 关键字段说明
 
 | 字段 | 必需 | 说明 | 推荐 |
 | --- | --- | --- | --- |
@@ -85,7 +114,7 @@ REMOTE_SIGNER_HTTP_AUTH_TOKEN = "replace_with_real_signer_token"
 | `REMOTE_SIGNER_HTTP_URL` | 条件必需 | 远程签名服务地址 | 仅签名模式需要 |
 | `REMOTE_SIGNER_HTTP_AUTH_TOKEN` | 条件必需 | 签名服务 token | 仅签名模式需要 |
 
-## 6. 网络恢复相关配置
+## 7. 网络恢复相关配置
 
 `qpyclaw-node` 当前内置了蜂窝网络自恢复机制，以下字段通常值得保留默认值：
 
@@ -100,15 +129,17 @@ REMOTE_SIGNER_HTTP_AUTH_TOKEN = "replace_with_real_signer_token"
 
 除非你在做非常明确的运营商适配，否则不要先改这些恢复项。
 
-## 7. 推荐实践
+## 8. 推荐实践
 
 1. 仓库内只提交 `config_local.example.py`，不要提交真实 `config_local.py`
 2. 首次上板优先用 `qpy_config_local_bootstrap.py` 生成配置
 3. 板级 profile、设备名字、显示名字要保持一致，不要一板多名
 4. 先跑 token-only，若被官方网关拒绝，再切 `remote_signer_http`
 5. 生产环境建议把 token 和 signer token 都放在设备本地，不走仓库文件
+6. 如果你要启用文本语音模式，优先保持 `VOICE_OPERATOR_CLIENT_ID="cli"` 和 `VOICE_OPERATOR_CLIENT_MODE="cli"`
+7. 首次遇到 `NOT_PAIRED: pairing required`，先在网关侧批准 pending device，不要先怀疑串口或蜂窝链路
 
-## 8. 反模式
+## 9. 反模式
 
 以下做法不推荐：
 

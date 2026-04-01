@@ -16,6 +16,9 @@
 | [../architecture/05-qpyclaw-agent-gateway-mode.md](../architecture/05-qpyclaw-agent-gateway-mode.md) | 明确为什么 `qpyclaw-agent` 可以定义为 QuecPython OpenClaw Gateway，以及 v1 只承诺哪些核心骨架 | 架构、产品 |
 | [../architecture/06-qpy-device-ops-agent-and-routing.md](../architecture/06-qpy-device-ops-agent-and-routing.md) | 明确云端 `qpy设备运维` agent 的职责、路由入口和对话方式 | 架构、研发、运维 |
 | [../architecture/07-qpyclaw-node-tools-consolidation-plan.md](../architecture/07-qpyclaw-node-tools-consolidation-plan.md) | 明确 `qpyclaw-node` 运行时工具模块收敛、按域合并和 lazy import 的迁移方案 | 架构、研发 |
+| [../architecture/08-qpyclaw-node-voice-dialog-v1.md](../architecture/08-qpyclaw-node-voice-dialog-v1.md) | 明确 `qpyclaw-node` 与 OpenClaw 做语音对话的 `V1` 路线、双连接模型，以及什么情况下才需要改 Gateway | 架构、研发、产品 |
+| [../architecture/09-qpyclaw-node-voice-dialog-implementation-plan.md](../architecture/09-qpyclaw-node-voice-dialog-implementation-plan.md) | 把语音路线继续落到实现层，明确接入点、状态机、单文件 runtime 边界、板级契约和 P0-P2 开发顺序 | 架构、研发、产品 |
+| [../architecture/10-qpyclaw-node-voice-dialog-api-contract.md](../architecture/10-qpyclaw-node-voice-dialog-api-contract.md) | 明确语音 `V1` 依赖的 OpenClaw 最小协议面，以及 `operator/chat/history/voice turn/board hooks` 的设备侧契约 | 架构、研发 |
 | [../research/01-ecosystem-scan.md](../research/01-ecosystem-scan.md) | 记录 OpenClaw 生态现状和可对标项目 | 产品、商务 |
 | [../research/2026-03-29-quecpython-module-count-memory-study.md](../research/2026-03-29-quecpython-module-count-memory-study.md) | 记录 QuecPython 模块数量、导入开销和当前 `qpyclaw-node` 文件结构的设备实测结论 | 架构、研发 |
 
@@ -34,13 +37,16 @@ flowchart TD
   I --> J["05 Gateway Mode"]
   J --> K["06 设备运维 Agent 路由"]
   K --> L["07 Runtime 模块收敛方案"]
-  L --> M["01 生态扫描"]
-  M --> N["模块数量与内存实测"]
-  N --> O["公开资料闭环"]
+  L --> M["08 Voice Dialog V1"]
+  M --> N["09 Voice Dialog Implementation"]
+  N --> O["10 Voice Dialog API Contract"]
+  O --> P["01 生态扫描"]
+  P --> Q["模块数量与内存实测"]
+  Q --> R["公开资料闭环"]
 ```
 
 ## 当前文档阶段
 
-1. 当前阶段是 `项目定义 + runtime 结构优化设计阶段`。
-2. 当前目标是把仓库、产品线、协议边界、首批能力和内存友好型 runtime 结构定义清楚。
-3. 当前先完成结构方案、迁移口径和回归方法, 再进入运行时代码改造。
+1. 当前阶段是 `项目定义 + runtime 结构优化 + voice dialog 契约定稿阶段`。
+2. 当前目标是把仓库、产品线、协议边界、首批能力、语音落地路径、API 契约和内存友好型 runtime 结构定义清楚。
+3. 当前先完成结构方案、语音实现口径、协议契约、迁移口径和回归方法，再进入运行时代码改造。

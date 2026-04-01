@@ -1,0 +1,4 @@
+dashscope>=1.25.12
+fastapi>=0.135.0
+uvicorn>=0.41.0
+websocket-client>=1.9.0

@@ -196,17 +196,69 @@ python tools/host/qpy_openclaw_server_ops.py `
   --json
 ```
 
-## 8. 常见问题
+## 8. 可选：验证文本语音链路
+
+当前已经实机验证的最小闭环是：
+
+1. `EC800MCNLE` 板级代码已部署
+2. `OPENCLAW_DEVICE_AUTH_MODE = "remote_signer_http"`
+3. `VOICE_ENABLED = True`
+4. `VOICE_OPERATOR_CLIENT_ID = "cli"`
+5. `VOICE_OPERATOR_CLIENT_MODE = "cli"`
+6. `VOICE_OPERATOR_REUSE_NODE_TOKEN = True`
+
+推荐先用英文短句做 smoke，这样串口日志里最容易直接看清返回值。
+
+在设备 REPL 中执行：
+
+```python
+import usys
+usys.path.append("/usr")
+import qpyclaw_node as n
+print(n.voice_chat("Please reply in one short English sentence: who are you?"))
+```
+
+如果你已经把音频板 example 拷到了设备，也可以用：
+
+```python
+import qpyclaw_board_voice_smoke as voice_smoke
+print(voice_smoke.voice_text_smoke())
+```
+
+如果第一次返回：
+
+```text
+NOT_PAIRED: pairing required
+```
+
+这通常不是设备异常，而是官方网关对 `operator(cli)` 的一次 repair pairing 门禁。
+
+在网关主机上批准一次最新 pending request，然后重试：
+
+```bash
+openclaw devices approve --latest
+```
+
+如果你的网关源码仓是直接在主机上运行，也可以用：
+
+```bash
+node openclaw.mjs devices approve --latest
+```
+
+批准一次后，同一设备会同时具备 `node + operator` 角色，后续文本语音 smoke 可以直接重试。
+
+## 9. 常见问题
 
 | 现象 | 优先排查 |
 | --- | --- |
 | 节点一直不上线 | 先检查 SIM、PDP、`OPENCLAW_WS_URL` 和 token |
 | token 路径可连但官方网关拒绝 | 改用 `remote_signer_http` 设备身份模式 |
+| `voice_chat()` 首次返回 `NOT_PAIRED` | 先去网关侧批准最新 pending repair pairing |
 | `EC800MCNLE` 板子没有表情 | 先跑 board media sync，确认 `U:/media/*.png` 已同步 |
 | 设备断网后不恢复 | 检查 `NETWORK_AUTO_RECOVER` 是否被本地覆盖关闭 |
 | 冷启动不自动运行 | 当前是开发态设计，不是默认正式启动态 |
 
-## 9. 最小成功标准
+## 10. 最小成功标准
 
 只要满足以下 4 条，就算 Quickstart 成功：
 
