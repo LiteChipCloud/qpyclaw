@@ -67,6 +67,10 @@ def build_parser() -> argparse.ArgumentParser:
                    help="Upload local app.py to the server before checking.")
     p.add_argument("--restart", action="store_true",
                    help="Restart the sidecar systemd service.")
+    p.add_argument("--install-ffmpeg", action="store_true",
+                   help="Install ffmpeg on the server via apt (enables transcode safety net).")
+    p.add_argument("--metrics", action="store_true",
+                   help="Fetch /api/metrics from sidecar via HTTP (no SSH needed).")
     p.add_argument("--json", action="store_true")
     return p
 
@@ -221,17 +225,54 @@ def asr_http_test(host: str, port: int, audio_path: str,
         return {"ok": False, "error": str(exc)}
 
 
+def install_ffmpeg(ssh) -> Dict[str, Any]:
+    """Install ffmpeg on the server via apt-get."""
+    # Check if already installed
+    existing = _ssh_run(ssh, "which ffmpeg 2>/dev/null")
+    if existing and "ffmpeg" in existing:
+        version = _ssh_run(ssh, "ffmpeg -version 2>&1 | head -1")
+        return {"ok": True, "already_installed": True, "path": existing.strip(), "version": version.strip()}
+    # Install
+    out = _ssh_run(ssh, "apt-get update -qq && apt-get install -y -qq ffmpeg 2>&1 | tail -5", timeout=120)
+    # Verify
+    check = _ssh_run(ssh, "which ffmpeg 2>/dev/null")
+    version = _ssh_run(ssh, "ffmpeg -version 2>&1 | head -1") if check else ""
+    return {
+        "ok": bool(check and "ffmpeg" in check),
+        "already_installed": False,
+        "path": check.strip() if check else "",
+        "version": version.strip(),
+        "install_output": out[-300:] if out else "",
+    }
+
+
+def fetch_metrics(host: str, port: int, auth_token: str = "") -> Dict[str, Any]:
+    """GET /api/metrics from sidecar via HTTP."""
+    url = "http://%s:%d/api/metrics" % (host, port)
+    headers = {}
+    if auth_token:
+        headers["Authorization"] = "Bearer " + auth_token
+    req = urllib.request.Request(url, headers=headers, method="GET")
+    try:
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        return {"ok": False, "http_status": exc.code, "error": exc.read().decode("utf-8", "replace")[:500]}
+    except Exception as exc:
+        return {"ok": False, "error": str(exc)}
+
+
 def main() -> int:
     args = build_parser().parse_args()
     summary: Dict[str, Any] = {"host": args.host, "sidecar_port": args.sidecar_port}
-    need_ssh = args.deploy or args.restart or args.asr_probe or (not args.asr_http_test)
+    need_ssh = args.deploy or args.restart or args.asr_probe or args.install_ffmpeg or (not args.asr_http_test and not args.metrics)
 
     ssh = None
     if need_ssh:
         try:
             ssh = _ssh_connect(args.host, args.ssh_user, args.ssh_pass, args.ssh_port)
         except Exception as exc:
-            if not args.asr_http_test:
+            if not args.asr_http_test and not args.metrics:
                 result = {"ok": False, "error": "ssh connect failed: %s" % exc}
                 if args.json:
                     print(json.dumps(result, ensure_ascii=False, indent=2))
@@ -242,6 +283,8 @@ def main() -> int:
 
     try:
         if ssh:
+            if args.install_ffmpeg:
+                summary["install_ffmpeg"] = install_ffmpeg(ssh)
             if args.deploy:
                 summary["deploy"] = deploy_app(ssh, args.remote_app_dir)
             if args.restart:
@@ -251,6 +294,9 @@ def main() -> int:
             summary["logs"] = check_logs(ssh, args.service_name, args.log_lines)
             if args.asr_probe:
                 summary["asr_probe"] = asr_probe(ssh, args.remote_app_dir, args.asr_probe_file)
+
+        if args.metrics:
+            summary["metrics"] = fetch_metrics(args.host, args.sidecar_port, args.asr_auth_token)
 
         if args.asr_http_test:
             summary["asr_http_test"] = asr_http_test(
@@ -268,8 +314,12 @@ def main() -> int:
             ok_parts.append(summary.get("restart", {}).get("ok", False))
         if args.asr_probe:
             ok_parts.append(summary.get("asr_probe", {}).get("ok", False))
+        if args.install_ffmpeg:
+            ok_parts.append(summary.get("install_ffmpeg", {}).get("ok", False))
         if args.asr_http_test:
             ok_parts.append(summary.get("asr_http_test", {}).get("ok", False))
+        if args.metrics:
+            ok_parts.append(summary.get("metrics", {}).get("ok", False))
         summary["ok"] = all(ok_parts) if ok_parts else False
     finally:
         if ssh:
@@ -292,6 +342,11 @@ def main() -> int:
             print("asr_probe:", "OK" if probe.get("ok") else "FAIL")
             if probe.get("transcript"):
                 print("  transcript:", probe["transcript"])
+        if args.install_ffmpeg:
+            ff = summary.get("install_ffmpeg", {})
+            print("install_ffmpeg:", "OK" if ff.get("ok") else "FAIL")
+            if ff.get("version"):
+                print("  version:", ff["version"])
         if args.asr_http_test:
             ht = summary.get("asr_http_test", {})
             print("asr_http_test:", "OK" if ht.get("ok") else "FAIL")
@@ -299,6 +354,16 @@ def main() -> int:
                 print("  transcript:", ht["transcript"])
             if ht.get("elapsed_ms"):
                 print("  elapsed_ms:", ht["elapsed_ms"])
+        if args.metrics:
+            m = summary.get("metrics", {})
+            print("metrics:", "OK" if m.get("ok") else "FAIL")
+            asr_m = m.get("asr", {})
+            if asr_m:
+                print("  asr: total=%s ok=%s fail=%s fail_rate=%s avg_ms=%s" % (
+                    asr_m.get("total"), asr_m.get("ok"), asr_m.get("fail"),
+                    asr_m.get("fail_rate"), asr_m.get("avg_latency_ms")))
+            if m.get("device_count"):
+                print("  devices:", m["device_count"])
         print("ok:", summary["ok"])
     return 0 if summary.get("ok") else 1
 

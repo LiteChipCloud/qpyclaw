@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.2-alpha.1] - 2026-04-01
+
+### Added
+
+1. Sidecar `/api/metrics` endpoint — ASR/TTS success/fail counts, latency stats, per-device breakdown
+2. Per-device metrics tracking — sidecar records `device_id` from each request, exposes per-device stats
+3. `--install-ffmpeg` in `qpy_voice_sidecar_health.py` — installs ffmpeg on server via SSH (enables transcode safety net)
+4. `--metrics` in `qpy_voice_sidecar_health.py` — fetches `/api/metrics` via HTTP (no SSH needed)
+5. `ffmpeg` status reported in sidecar `/healthz` response
+
+### Changed
+
+1. Sidecar `app.py` version bumped to `0.2.0`
+2. ASR log lines now include `device_id` for multi-device tracing
+3. ASR/TTS failure paths now record metrics before raising exceptions
+
 ## [0.1.1-alpha.1] - 2026-04-01
 
 ### Fixed

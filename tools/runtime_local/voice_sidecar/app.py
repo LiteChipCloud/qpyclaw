@@ -41,7 +41,7 @@ from pydantic import BaseModel
 from pydantic import Field
 
 
-APP_VERSION = "0.1.0"
+APP_VERSION = "0.2.0"
 
 
 def _env_text(name: str, default: str = "") -> str:
@@ -353,6 +353,125 @@ def _tts_ws_queue_max() -> int:
     return max(16, _env_int("QPYCLAW_TTS_WS_QUEUE_MAX", 256))
 
 
+# ---------------------------------------------------------------------------
+# Metrics collection (per-device + global)
+# ---------------------------------------------------------------------------
+
+class _Metrics:
+    """Thread-safe request metrics with per-device_id breakdown."""
+
+    def __init__(self) -> None:
+        self._lock = threading.Lock()
+        self._started_at = time.time()
+        self._asr_total = 0
+        self._asr_ok = 0
+        self._asr_fail = 0
+        self._asr_latency_sum_ms = 0
+        self._asr_latency_max_ms = 0
+        self._asr_transcoded = 0
+        self._tts_total = 0
+        self._tts_ok = 0
+        self._tts_fail = 0
+        self._tts_latency_sum_ms = 0
+        self._tts_ws_total = 0
+        self._tts_ws_ok = 0
+        self._tts_ws_fail = 0
+        # per-device: device_id -> {asr_total, asr_ok, asr_fail, last_seen, ...}
+        self._devices: dict[str, dict[str, Any]] = {}
+
+    def _device(self, device_id: str) -> dict[str, Any]:
+        did = str(device_id or "unknown").strip() or "unknown"
+        if did not in self._devices:
+            self._devices[did] = {
+                "asr_total": 0, "asr_ok": 0, "asr_fail": 0,
+                "tts_total": 0, "tts_ok": 0, "tts_fail": 0,
+                "last_seen": 0.0, "last_transcript": "",
+            }
+        return self._devices[did]
+
+    def record_asr(self, device_id: str, ok: bool, elapsed_ms: int,
+                   transcoded: bool, transcript: str) -> None:
+        with self._lock:
+            self._asr_total += 1
+            if ok:
+                self._asr_ok += 1
+            else:
+                self._asr_fail += 1
+            self._asr_latency_sum_ms += elapsed_ms
+            if elapsed_ms > self._asr_latency_max_ms:
+                self._asr_latency_max_ms = elapsed_ms
+            if transcoded:
+                self._asr_transcoded += 1
+            d = self._device(device_id)
+            d["asr_total"] += 1
+            if ok:
+                d["asr_ok"] += 1
+            else:
+                d["asr_fail"] += 1
+            d["last_seen"] = time.time()
+            if transcript:
+                d["last_transcript"] = transcript[:100]
+
+    def record_tts(self, ok: bool, elapsed_ms: int, ws: bool = False) -> None:
+        with self._lock:
+            if ws:
+                self._tts_ws_total += 1
+                if ok:
+                    self._tts_ws_ok += 1
+                else:
+                    self._tts_ws_fail += 1
+            else:
+                self._tts_total += 1
+                if ok:
+                    self._tts_ok += 1
+                else:
+                    self._tts_fail += 1
+                self._tts_latency_sum_ms += elapsed_ms
+
+    def snapshot(self) -> dict[str, Any]:
+        with self._lock:
+            uptime = int(time.time() - self._started_at)
+            asr_avg = (
+                int(self._asr_latency_sum_ms / self._asr_total)
+                if self._asr_total > 0 else 0
+            )
+            asr_fail_rate = (
+                round(self._asr_fail / self._asr_total, 4)
+                if self._asr_total > 0 else 0.0
+            )
+            devices = {}
+            for did, d in self._devices.items():
+                devices[did] = dict(d)
+                devices[did]["last_seen_ago_s"] = int(time.time() - d["last_seen"]) if d["last_seen"] else None
+            return {
+                "uptime_s": uptime,
+                "asr": {
+                    "total": self._asr_total,
+                    "ok": self._asr_ok,
+                    "fail": self._asr_fail,
+                    "fail_rate": asr_fail_rate,
+                    "avg_latency_ms": asr_avg,
+                    "max_latency_ms": self._asr_latency_max_ms,
+                    "transcoded": self._asr_transcoded,
+                },
+                "tts_http": {
+                    "total": self._tts_total,
+                    "ok": self._tts_ok,
+                    "fail": self._tts_fail,
+                },
+                "tts_ws": {
+                    "total": self._tts_ws_total,
+                    "ok": self._tts_ws_ok,
+                    "fail": self._tts_ws_fail,
+                },
+                "devices": devices,
+                "device_count": len(self._devices),
+            }
+
+
+_metrics = _Metrics()
+
+
 def _run_asr(payload: AsrRequest) -> dict[str, Any]:
     _require_api_key()
     workspace = _optional_workspace()
@@ -394,8 +513,18 @@ def _run_asr(payload: AsrRequest) -> dict[str, Any]:
         )
         result = recognizer.call(temp_path)
     except HTTPException:
+        _metrics.record_asr(
+            device_id=payload.device_id or "", ok=False,
+            elapsed_ms=int((time.time() - request_started) * 1000),
+            transcoded=bool(transcoded_info), transcript="",
+        )
         raise
     except Exception as exc:
+        _metrics.record_asr(
+            device_id=payload.device_id or "", ok=False,
+            elapsed_ms=int((time.time() - request_started) * 1000),
+            transcoded=bool(transcoded_info), transcript="",
+        )
         raise HTTPException(status_code=502, detail="dashscope asr failed: " + str(exc)) from exc
     finally:
         try:
@@ -407,8 +536,15 @@ def _run_asr(payload: AsrRequest) -> dict[str, Any]:
     transcript = _flatten_asr_text(sentences)
     elapsed_ms = int((time.time() - request_started) * 1000)
     logger.info(
-        "ASR: transcript=%r elapsed=%dms request_id=%s",
-        transcript, elapsed_ms, result.get_request_id(),
+        "ASR: device=%s transcript=%r elapsed=%dms request_id=%s",
+        payload.device_id or "-", transcript, elapsed_ms, result.get_request_id(),
+    )
+    _metrics.record_asr(
+        device_id=payload.device_id or "",
+        ok=True,
+        elapsed_ms=elapsed_ms,
+        transcoded=bool(transcoded_info),
+        transcript=transcript,
     )
     return {
         "ok": True,
@@ -477,10 +613,13 @@ def _run_tts(payload: TtsRequest) -> dict[str, Any]:
             time.sleep(0.05)
         collector.first_audio_delay_ms = client.get_first_audio_delay()
         if collector.error is not None:
+            _metrics.record_tts(ok=False, elapsed_ms=int((time.time() - started) * 1000))
             raise HTTPException(status_code=502, detail="dashscope tts failed: " + json.dumps(collector.error, ensure_ascii=False))
         if not collector.done:
+            _metrics.record_tts(ok=False, elapsed_ms=int((time.time() - started) * 1000))
             raise HTTPException(status_code=504, detail="dashscope tts timeout")
         if not collector.audio:
+            _metrics.record_tts(ok=False, elapsed_ms=int((time.time() - started) * 1000))
             raise HTTPException(status_code=502, detail="dashscope tts produced empty audio")
         try:
             client.finish()
@@ -496,6 +635,7 @@ def _run_tts(payload: TtsRequest) -> dict[str, Any]:
     audio_format = str(payload.format or _tts_audio_format())
     audio_bytes = bytes(collector.audio)
     elapsed_ms = int((time.time() - started) * 1000)
+    _metrics.record_tts(ok=True, elapsed_ms=elapsed_ms, ws=False)
     return {
         "ok": True,
         "source": "dashscope_qwen3_tts_realtime",
@@ -747,6 +887,20 @@ def healthz() -> dict[str, Any]:
         "tts_voice": _tts_voice(),
         "tts_ws_max_text_chars": _tts_ws_max_text_chars(),
         "tts_ws_queue_max": _tts_ws_queue_max(),
+        "ffmpeg": _has_ffmpeg(),
+    }
+
+
+@app.get("/api/metrics")
+def api_metrics(
+    authorization: str | None = Header(default=None),
+) -> dict[str, Any]:
+    _require_proxy_auth(authorization)
+    return {
+        "ok": True,
+        "service": "qpyclaw-voice-sidecar",
+        "version": APP_VERSION,
+        **_metrics.snapshot(),
     }
 
 
