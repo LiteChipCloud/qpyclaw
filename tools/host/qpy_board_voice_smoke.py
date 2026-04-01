@@ -269,27 +269,46 @@ _RUNTIME_REFS = [
 
 
 def run_asr_smoke(cli, port: str, baud: int, args) -> Dict[str, Any]:
-    """ASR smoke: exec _main.py, hands-off, then verify voice state."""
+    """ASR smoke: soft-reset, exec _main.py, hands-off, then verify voice state."""
     summary: Dict[str, Any] = {"mode": "asr", "ok": False}
 
+    # Step 0: soft reset for a clean slate
+    print("[asr] soft-resetting device ...")
+    reset_result = run_soft_reset(cli, port, baud, int(args.timeout), 8.0)
+    summary["soft_reset"] = reset_result.get("ok", False)
+    if not reset_result.get("ok"):
+        summary["error"] = "soft reset failed"
+        return summary
+
     # Step 1: exec _main.py
+    print("[asr] exec _main.py ...")
     cli.repl_send_lines(
         port, baud,
         ['exec(open("/usr/_main.py").read())'],
         timeout=max(15, int(args.timeout)),
         settle_ms=5000,
     )
-    time.sleep(float(args.asr_boot_wait))
+    boot_wait = float(args.asr_boot_wait)
+    print("[asr] waiting %.0fs for runtime boot ..." % boot_wait)
+    time.sleep(boot_wait)
 
-    # Step 2: verify voice controller ready
-    r = _repl_kv(cli, port, baud, _RUNTIME_REFS + [
-        'print("VOICE=" + str(_v is not None))',
-        'print("STATE=" + str(_v.state if _v else "N/A"))',
-    ], timeout=15, settle_ms=2000)
-    summary["boot_voice_ready"] = r.get("VOICE") == "True"
+    # Step 2: verify voice controller ready (retry a few times)
+    voice_ready = False
+    for attempt in range(4):
+        r = _repl_kv(cli, port, baud, _RUNTIME_REFS + [
+            'print("VOICE=" + str(_v is not None))',
+            'print("STATE=" + str(_v.state if _v else "N/A"))',
+        ], timeout=15, settle_ms=2000)
+        if r.get("VOICE") == "True":
+            voice_ready = True
+            break
+        print("[asr] voice not ready (attempt %d/4), waiting 10s ..." % (attempt + 1))
+        time.sleep(10)
+    summary["boot_voice_ready"] = voice_ready
     summary["boot_state"] = r.get("STATE", "")
-    if not summary["boot_voice_ready"]:
+    if not voice_ready:
         summary["error"] = "voice controller not ready after boot"
+        summary["boot_raw"] = r.get("__raw__", "")
         return summary
 
     # Step 3: hands-off — user speaks
