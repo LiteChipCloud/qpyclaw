@@ -1,7 +1,7 @@
 {
   "version": 1,
   "name": "ec800mcnle-audio-board-code",
-  "local_root_rel": "../../../../boards/ec800mcnle-audio-board/code",
+  "local_root_rel": "../../../boards/ec800mcnle-audio-board/code",
   "remote_root": "/usr/board",
   "files": [
     "board_audio.py",

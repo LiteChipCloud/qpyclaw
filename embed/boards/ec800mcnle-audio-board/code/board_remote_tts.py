@@ -534,15 +534,24 @@ class RemoteTtsSpeaker(object):
 
     def _ws_bundle(self):
         module = _safe_import("qpyclaw_node")
-        if module is None:
-            raise Exception("qpyclaw_node unavailable")
-        client_ctor = getattr(module, "WsClient", None)
+        client_ctor = getattr(module, "WsClient", None) if module else None
+        timeout_type = getattr(module, "WsTimeout", None) if module else None
+        closed_type = getattr(module, "WsClosed", None) if module else None
         if client_ctor is None:
-            raise Exception("WsClient unavailable")
+            ws_mod = _safe_import("ws_client")
+            if ws_mod is None:
+                raise Exception("WsClient unavailable")
+            client_ctor = getattr(ws_mod, "WsClient", None)
+            if client_ctor is None:
+                raise Exception("WsClient unavailable")
+            if timeout_type is None:
+                timeout_type = getattr(ws_mod, "WsTimeout", None)
+            if closed_type is None:
+                closed_type = getattr(ws_mod, "WsClosed", None)
         return {
             "client_ctor": client_ctor,
-            "timeout_type": getattr(module, "WsTimeout", None),
-            "closed_type": getattr(module, "WsClosed", None),
+            "timeout_type": timeout_type,
+            "closed_type": closed_type,
         }
 
     def _stream_audio_format(self, value):
@@ -800,6 +809,9 @@ class RemoteTtsSpeaker(object):
         self.last_text = _string((result or {}).get("reply_text")).strip()
         if not self.last_text:
             return {"played": False, "reason": "empty_reply_text"}
+        max_chars = _cfg_int(self.cfg, "VOICE_TTS_MAX_TEXT_CHARS", 200)
+        if max_chars > 0 and len(self.last_text) > max_chars:
+            self.last_text = self.last_text[:max_chars]
         if self._should_skip(result or {}):
             return {"played": False, "reason": "directive_skip"}
 

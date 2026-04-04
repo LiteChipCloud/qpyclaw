@@ -7,6 +7,7 @@ __pycache__/
 
 .DS_Store
 Thumbs.db
+.windsurf/
 
 .venv/
 venv/
@@ -16,6 +17,11 @@ venv/
 # Internal dev notes and smoke outputs.
 discussion/
 review/
+
+# Local scratch helpers and ad-hoc diagnostics.
+tools/host/_*.py
+tools/host/_*.ps1
+tools/host/_*.json
 
 # Local device config and secrets.
 config_local.py

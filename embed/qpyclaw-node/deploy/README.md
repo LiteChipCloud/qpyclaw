@@ -5,11 +5,11 @@ This directory holds deployment control files for `qpyclaw-node`.
 ## Runtime Manifest
 
 `runtime-manifest.json` is the explicit allowlist for files that may be
-deployed from local `usr_mirror` to device `/usr`.
+deployed from `embed/qpyclaw-node/code/` to device `/usr`.
 
 It defines:
 
-1. `local_root_rel`: the source mirror root
+1. `local_root_rel`: the source code root (now pointing at `../code`)
 2. `remote_root`: the device-side target root
 3. `files`: files allowed to be pushed
 4. `preserve_remote_files`: device-local files that should not be managed
@@ -25,23 +25,34 @@ Current example:
 1. `board-manifests/ec800mcnle-audio-board.json`
 2. `board-manifests/ec800mcnle-audio-board-media.json`
 
-This keeps the split explicit:
+This keeps the split explicit and ensures the board media manifest points at `U:/media` (the path checked by `BoardEmojiUi`).
 
 1. generic runtime -> `/usr`
 2. board-specific code -> `/usr/board`
 3. board-specific media -> `U:/media`
 
-Current standard runtime payload:
+Current standard runtime payload (the files the manifest copies to `/usr`):
 
-1. `/usr/qpyclaw_node.py`
-2. `/usr/_main.py`
-3. optional `/usr/config_local.py`
+1. `/usr/_main.py` — entry point
+2. `/usr/config.py` — default config + local override loader
+3. `/usr/qpyclaw_node.py` — slim orchestrator
+4. `/usr/transport.py` — WebSocket transport layer
+5. `/usr/tools.py` — tool system + command worker
+6. `/usr/voice.py` — voice dialog client
+7. `/usr/dispatch.py` — thread dispatch for board main
+8. `/usr/node_main.py` — board-aware main loop
+9. optional `/usr/config_local.py` — device-local credentials
+
+Component files are still pulled from `embed/components/` and deployed to `/usr/`:
+
+1. `/usr/ws_client.py` — portable WebSocket client
+2. `/usr/cellular.py` — cellular network manager
 
 Legacy compatibility note:
 
-1. single-file `qpyclaw_node.py` still attempts to load `config_local.py`
-2. it will look in `/usr/` first
-3. it also accepts older `/usr/app/config_local.py` during transition
+1. `config.py` loads `config_local.py` overrides automatically.
+2. `/usr/config_local.py` is the canonical credentials file.
+3. `/usr/app/config_local.py` is still accepted during transition but should not be relied on for new flows.
 
 ## config_local Profiles
 

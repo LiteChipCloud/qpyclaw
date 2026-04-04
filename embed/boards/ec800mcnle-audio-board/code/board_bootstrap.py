@@ -6,6 +6,11 @@ from board_power import BoardPower
 from board_ui import BoardEmojiUi
 from board_voice_controller import BoardVoiceSessionController
 
+try:
+    from machine import Pin as _Pin
+except Exception:
+    _Pin = None
+
 
 def _safe_import(name):
     try:
@@ -77,6 +82,16 @@ class EC800MCNLEAudioBoard(object):
         if voice is None:
             voice = BoardVoiceSessionController(self)
         self.voice = voice
+        self._init_user_button(voice)
+
+    def _init_user_button(self, voice):
+        if _Pin is None:
+            return
+        try:
+            btn = _Pin(getattr(_Pin, "GPIO27", 27), _Pin.IN, _Pin.PULL_PU)
+            voice._button_pin = btn
+        except Exception:
+            pass
 
     def boot_minimal(self, enable_charge=True, enable_display=True, open_audio=False):
         if self.power.supported:
@@ -147,6 +162,10 @@ class EC800MCNLEAudioBoard(object):
         except Exception:
             self.show_error()
         if self.voice is not None:
+            try:
+                self.voice.handle_button()
+            except Exception:
+                pass
             try:
                 self.voice.step()
             except Exception:
@@ -626,6 +645,7 @@ class EC800MCNLEBoardExtension(object):
             ):
                 try:
                     if self.board.voice.begin_listening("boot-debug"):
+                        self.debug_force_listen_on_boot = False
                         self._debug_force_listen_pending = False
                         self._debug_force_listen_last_result = "started"
                     else:

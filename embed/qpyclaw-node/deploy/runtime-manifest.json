@@ -1,11 +1,25 @@
 {
-  "version": 1,
+  "version": 2,
   "name": "qpyclaw-node-runtime",
-  "local_root_rel": "../runtime/usr_mirror",
+  "local_root_rel": "../code",
   "remote_root": "/usr",
   "files": [
     "_main.py",
-    "qpyclaw_node.py"
+    "config.py",
+    "qpyclaw_node.py",
+    "transport.py",
+    "tools.py",
+    "voice.py",
+    "node_main.py",
+    "dispatch.py",
+    {
+      "path": "ws_client.py",
+      "source_root_rel": "../../components"
+    },
+    {
+      "path": "cellular.py",
+      "source_root_rel": "../../components"
+    }
   ],
   "preserve_remote_files": [
     "config_local.py",

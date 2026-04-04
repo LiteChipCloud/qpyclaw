@@ -3,9 +3,9 @@
 Run board-level qpyclaw voice smoke against an EC800MCNLE device.
 
 Modes:
-1. text    -> /usr/qpyclaw_board_voice_smoke.py
-2. session -> /usr/qpyclaw_board_voice_session.py
-3. asr     -> exec _main.py, let runtime auto-listen, user speaks, verify ASR transcript
+1. text    -> create board-aware runtime and call `qpyclaw_node.voice_chat(...)`
+2. session -> create board-aware runtime and inject transcript through the board voice controller
+3. asr     -> exec `_main.py`, let runtime auto-listen, user speaks, verify ASR transcript
 """
 
 from __future__ import annotations
@@ -33,7 +33,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--mode",
         choices=["text", "session", "asr"],
         default="text",
-        help="Smoke mode. text=voice_smoke, session=voice_session, asr=real mic ASR verify.",
+        help="Smoke mode. text=voice_chat, session=board voice controller, asr=real mic ASR verify.",
     )
     parser.add_argument(
         "--message",
@@ -164,42 +164,11 @@ def extract_marked_json_object(raw: str, marker: str) -> Dict[str, Any]:
 
 
 def build_smoke_script(mode: str, message: str, open_audio: bool, session_post_wait_ms: int) -> str:
-    helper_module = "qpyclaw_board_voice_smoke"
-    helper_call = (
-        "_result=_helper.voice_text_smoke(message=%r, timeout_ms=45000, subscribe=False, open_audio=%s)"
-        % (str(message or ""), "True" if open_audio else "False")
-    )
-    extra_lines = [
-        "import qpyclaw_node",
-        "_node=getattr(qpyclaw_node,'_LAST_NODE',None)",
-        "_ext=getattr(_node,'extension',None)",
-        "_board=getattr(_ext,'board',None)",
-        "_ui=getattr(_board,'ui',None)",
-        "_voice=getattr(_board,'voice',None)",
-        "_ui_snapshot=(_ui.snapshot() if _ui is not None else {})",
-        "_session_snapshot=(_voice.snapshot() if _voice is not None else {})",
-    ]
-    if mode == "session":
-        helper_module = "qpyclaw_board_voice_session"
-        helper_call = (
-            "_result=_helper.voice_session_smoke(message=%r, open_audio=%s)"
-            % (str(message or ""), "True" if open_audio else "False")
-        )
-        extra_lines = [
-            "import utime",
-            "utime.sleep_ms(%d)" % max(0, int(session_post_wait_ms)),
-            "_session_snapshot=_helper.voice_session_status(open_audio=%s)" % ("True" if open_audio else "False"),
-            "import qpyclaw_node",
-            "_node=getattr(qpyclaw_node,'_LAST_NODE',None)",
-            "_ext=getattr(_node,'extension',None)",
-            "_board=getattr(_ext,'board',None)",
-            "_ui=getattr(_board,'ui',None)",
-            "_ui_snapshot=(_ui.snapshot() if _ui is not None else {})",
-        ]
     lines = [
         "import sys as _sys",
         "import gc",
         "import ujson",
+        "import utime",
         "_p='/usr'; _dummy=(_p in _sys.path) or _sys.path.append(_p)",
         "_p='usr'; _dummy=(_p in _sys.path) or _sys.path.append(_p)",
         "_p='/usr/board'; _dummy=(_p in _sys.path) or _sys.path.append(_p)",
@@ -209,16 +178,106 @@ def build_smoke_script(mode: str, message: str, open_audio: bool, session_post_w
         "_result={}",
         "_ui_snapshot={}",
         "_session_snapshot={}",
+        "def _ticks_ms():",
+        " try:",
+        "  return utime.ticks_ms()",
+        " except Exception:",
+        "  try:",
+        "   return int(utime.time() * 1000)",
+        "  except Exception:",
+        "   return 0",
+        "def _ticks_add(base_ms, delta_ms):",
+        " try:",
+        "  return utime.ticks_add(base_ms, int(delta_ms))",
+        " except Exception:",
+        "  return int(base_ms or 0) + int(delta_ms or 0)",
+        "def _ticks_diff(left_ms, right_ms):",
+        " try:",
+        "  return utime.ticks_diff(left_ms, right_ms)",
+        " except Exception:",
+        "  return int(left_ms or 0) - int(right_ms or 0)",
+        "def _sleep_ms(delay_ms):",
+        " try:",
+        "  utime.sleep_ms(int(delay_ms or 0))",
+        " except Exception:",
+        "  pass",
+        "def _take_ui_snapshot(board):",
+        " ui = getattr(board, 'ui', None)",
+        " return ui.snapshot() if ui is not None else {}",
+        "def _take_voice_snapshot(voice):",
+        " return voice.snapshot() if voice is not None else {}",
+        "def _ensure_runtime(open_audio=False, enable_voice=False, voice_auto_start=False):",
+        " import qpyclaw_node",
+        " node = getattr(qpyclaw_node, '_LAST_NODE', None)",
+        " board = None",
+        " if node is not None:",
+        "  try:",
+        "   snapshot = node.debug_snapshot()",
+        "  except Exception:",
+        "   snapshot = {}",
+        "  board = getattr(getattr(node, 'extension', None), 'board', None)",
+        "  if (not bool(snapshot.get('has_extension'))) or board is None:",
+        "   node = None",
+        "   board = None",
+        " if node is None:",
+        "  from board_bootstrap import create_qpyclaw_extension",
+        "  extension = create_qpyclaw_extension(enable_charge=True, enable_display=True, open_audio=bool(open_audio), enable_voice=bool(enable_voice), voice_auto_start=bool(voice_auto_start))",
+        "  node = qpyclaw_node.create_runtime(extension=extension)",
+        "  board = getattr(getattr(node, 'extension', None), 'board', None)",
+        " voice = getattr(board, 'voice', None)",
+        " if voice is not None:",
+        "  try:",
+        "   voice.configure(enabled=bool(enable_voice), auto_start=bool(voice_auto_start), audio_enabled=bool(open_audio))",
+        "  except Exception:",
+        "   pass",
+        " return qpyclaw_node, node, board, voice",
+        "def _pump_runtime_until(node, voice, timeout_ms=45000, step_delay_ms=20, baseline_turn_count=None):",
+        " deadline = _ticks_add(_ticks_ms(), int(timeout_ms))",
+        " snapshot = _take_voice_snapshot(voice)",
+        " if baseline_turn_count is None:",
+        "  baseline_turn_count = int(snapshot.get('turn_count') or 0)",
+        " while True:",
+        "  node.step()",
+        "  snapshot = _take_voice_snapshot(voice)",
+        "  if int(snapshot.get('turn_count') or 0) > int(baseline_turn_count or 0):",
+        "   if (not snapshot.get('worker_busy')) and int(snapshot.get('pending_transcripts') or 0) <= 0:",
+        "    return snapshot",
+        "  if snapshot.get('last_result_ok') is not None and (not snapshot.get('worker_busy')) and int(snapshot.get('pending_transcripts') or 0) <= 0:",
+        "   return snapshot",
+        "  if _ticks_diff(deadline, _ticks_ms()) <= 0:",
+        "   return snapshot",
+        "  _sleep_ms(step_delay_ms)",
         "try:",
-        " import %s as _helper" % helper_module,
-        " %s" % helper_call,
     ]
-    for item in extra_lines:
-        lines.append(" " + item)
+    if mode == "session":
+        lines.extend(
+            [
+                " qpyclaw_node, node, board, voice = _ensure_runtime(open_audio=%s, enable_voice=True, voice_auto_start=True)" % ("True" if open_audio else "False"),
+                " if voice is None:",
+                "  raise Exception('board voice controller unavailable')",
+                " before = _take_voice_snapshot(voice)",
+                " baseline_turn_count = int(before.get('turn_count') or 0)",
+                " voice.start()",
+                " _result = voice.inject_transcript(%r, source='host-smoke')" % str(message or ""),
+                " _sleep_ms(%d)" % max(0, int(session_post_wait_ms)),
+                " _session_snapshot = _pump_runtime_until(node, voice, timeout_ms=45000, step_delay_ms=20, baseline_turn_count=baseline_turn_count)",
+                " _ui_snapshot = _take_ui_snapshot(board)",
+                " _result = {'ok': bool(_session_snapshot.get('last_result_ok')), 'controller': _result, 'final': _session_snapshot}",
+            ]
+        )
+    else:
+        lines.extend(
+            [
+                " qpyclaw_node, node, board, voice = _ensure_runtime(open_audio=%s, enable_voice=True, voice_auto_start=False)" % ("True" if open_audio else "False"),
+                " _result = qpyclaw_node.voice_chat(%r, timeout_ms=45000, subscribe=False, runtime=node)" % str(message or ""),
+                " _ui_snapshot = _take_ui_snapshot(board)",
+                " _session_snapshot = _take_voice_snapshot(voice)",
+            ]
+        )
     lines.extend(
         [
             "except Exception as _e:",
-            " _err=repr(_e)",
+            " _err = repr(_e)",
             "print('QPY_BOARD_VOICE_SMOKE_JSON=' + ujson.dumps({'mode': %r, 'result': _result, 'ui': _ui_snapshot, 'session': _session_snapshot, 'err': _err}))"
             % str(mode),
         ]

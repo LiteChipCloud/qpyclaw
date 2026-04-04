@@ -99,6 +99,34 @@ def _existing_board_runtime(module):
     return None
 
 
+def _sleep_ms(delay_ms):
+    try:
+        if int(delay_ms or 0) >= 1000:
+            _utime.sleep(int(int(delay_ms) / 1000))
+        else:
+            _utime.sleep_ms(int(delay_ms or 0))
+    except Exception:
+        pass
+
+
+def _run_runtime_loop(runtime):
+    while True:
+        try:
+            ok = runtime.step()
+        except Exception as e:
+            try:
+                if hasattr(runtime, "state") and hasattr(runtime.state, "note_error"):
+                    runtime.state.note_error("MAIN_LOOP_ERROR", _string(e))
+            except Exception:
+                pass
+            _sleep_ms(3000)
+            continue
+        if ok:
+            _sleep_ms(20)
+        else:
+            _sleep_ms(1000)
+
+
 def main():
     qpyclaw_node = _load_qpyclaw_node()
     existing = _existing_board_runtime(qpyclaw_node)
@@ -118,13 +146,7 @@ def main():
         voice_auto_start=voice_auto_start,
     )
     runtime = qpyclaw_node.create_runtime(extension=extension)
-
-    while True:
-        runtime.step()
-        try:
-            _utime.sleep_ms(20)
-        except Exception:
-            pass
+    _run_runtime_loop(runtime)
 
 
 if __name__ == "__main__":

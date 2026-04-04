@@ -1,8 +1,8 @@
 {
   "version": 1,
   "name": "ec800mcnle-audio-board-media",
-  "local_root_rel": "../../../../boards/ec800mcnle-audio-board/resource/ui/emoji",
-  "remote_root": "/usr/media",
+  "local_root_rel": "../../../boards/ec800mcnle-audio-board/resource/ui/emoji",
+  "remote_root": "U:/media",
   "files": [
     "angry.png",
     "confident.png",

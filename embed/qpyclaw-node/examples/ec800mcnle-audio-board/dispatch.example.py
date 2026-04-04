@@ -17,13 +17,13 @@ def _ensure_path(path):
 def _run_board_main():
     try:
         mods = getattr(_sys, "modules", None)
-        if mods is not None and "qpyclaw_board_main" in mods:
-            mods.pop("qpyclaw_board_main")
+        if mods is not None and "node_main" in mods:
+            mods.pop("node_main")
     except Exception:
         pass
-    import qpyclaw_board_main
+    import node_main
 
-    qpyclaw_board_main.main()
+    node_main.main()
 
 
 def main():

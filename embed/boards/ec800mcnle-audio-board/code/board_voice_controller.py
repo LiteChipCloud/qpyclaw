@@ -121,6 +121,7 @@ class BoardVoiceSessionController(object):
         self.audio_capture_max_bytes = 65536
         self.audio_capture_buffer = []
         self.last_audio_capture = {}
+        self._button_was_pressed = False
         self._state_emotions = {
             "idle": "neutral",
             "wake": "surprised",
@@ -497,6 +498,7 @@ class BoardVoiceSessionController(object):
         self.abort_inflight = False
         self._clear_pending_inputs()
         self._audio_capture_cancel("stop")
+        self._button_was_pressed = False
         self._stop_vad()
         self._stop_kws()
         self._set_state("stopped", "stopped")
@@ -964,6 +966,74 @@ class BoardVoiceSessionController(object):
         ):
             self._start_kws()
         return True
+
+    def handle_button(self):
+        if not self.active:
+            self._button_was_pressed = False
+            return False
+        pressed = self._check_button_state()
+        triggered = bool(pressed) and (not self._button_was_pressed)
+        self._button_was_pressed = bool(pressed)
+        if not triggered:
+            return False
+        try:
+            return self._handle_button_press()
+        except Exception as e:
+            self._note_error("button: " + self._string(e))
+        return False
+
+    def _check_button_state(self):
+        try:
+            if hasattr(self, "_button_pin") and self._button_pin is not None:
+                if hasattr(self._button_pin, "read"):
+                    return self._button_pin.read() == 0
+                if hasattr(self._button_pin, "value"):
+                    return self._button_pin.value() == 0
+        except Exception:
+            pass
+        board = self.board
+        if board is not None:
+            button = getattr(board, "button", None)
+            if button is not None:
+                try:
+                    if hasattr(button, "is_pressed"):
+                        return bool(button.is_pressed())
+                except Exception:
+                    pass
+                try:
+                    if hasattr(button, "value"):
+                        return button.value() == 0
+                except Exception:
+                    pass
+            reader = getattr(board, "read_button", None)
+            if callable(reader):
+                try:
+                    return bool(reader())
+                except Exception:
+                    pass
+        return False
+
+    def _handle_button_press(self):
+        state = self.state
+        if state == "speaking":
+            self.pending_listen_after_abort = False
+            self.abort("button-interrupt")
+            return True
+        if state == "thinking":
+            self.pending_listen_after_abort = False
+            self.abort("button-cancel")
+            return True
+        if state == "listening":
+            self._clear_pending_inputs()
+            self._audio_capture_cancel("button-end")
+            self._stop_vad()
+            self._stop_kws()
+            self._set_state("idle", "button-end")
+            self._show_message_text("")
+            return True
+        if state in ("idle", "error", "stopped", "wake"):
+            return bool(self.begin_listening("button"))
+        return False
 
     def snapshot(self):
         voice = self._voice_runtime()

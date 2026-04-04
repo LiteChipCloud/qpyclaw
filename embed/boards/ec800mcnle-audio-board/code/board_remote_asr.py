@@ -208,11 +208,15 @@ class RemoteAsrTranscriptProvider(object):
 
     def _payload(self, controller, reason, capture):
         audio_bytes = capture.get("data") or b""
+        capture["data"] = b""  # free ref early to help GC
         summary = {}
         for key in capture:
             if key == "data":
                 continue
             summary[key] = capture[key]
+        audio_len = len(audio_bytes)
+        b64 = _encode_base64(audio_bytes)
+        audio_bytes = None  # free raw bytes before building dict
         return {
             "provider": self.provider_name,
             "deviceId": _cfg_string(self.cfg, "DEVICE_ID", ""),
@@ -233,11 +237,11 @@ class RemoteAsrTranscriptProvider(object):
                     "VOICE_ASR_HTTP_SAMPLE_RATE",
                     summary.get("sample_rate") or 16000,
                 ),
-                "bytes": int(len(audio_bytes)),
+                "bytes": audio_len,
                 "durationMs": int(summary.get("duration_ms") or 0),
                 "chunks": int(summary.get("chunks") or 0),
                 "truncated": bool(summary.get("truncated")),
-                "base64": _encode_base64(audio_bytes),
+                "base64": b64,
             },
         }
 
@@ -272,7 +276,11 @@ class RemoteAsrTranscriptProvider(object):
         url = _cfg_string(self.cfg, "VOICE_ASR_HTTP_URL", "")
         if not url:
             raise Exception("VOICE_ASR_HTTP_URL missing")
+        gc = _safe_import("gc")
+        if gc is not None:
+            gc.collect()
         body = self._payload(controller, reason, capture)
+        capture = None  # free capture ref
         response = None
         self.last_request_ms = _ticks_ms()
         self.last_status_code = 0

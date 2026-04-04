@@ -1,26 +1,22 @@
 # embed/qpyclaw-node
 
-这是当前 `qpyclaw` 项目最重要的目录。
+`embed/qpyclaw-node` holds the shared node runtime that runs on QuecPython devices and connects to the Official OpenClaw Gateway.
 
-当前主线目标：
+## Runtime Layout
 
-```text
-qpyclaw-node -> Official OpenClaw Gateway
-```
+- All production runtime modules live in `embed/qpyclaw-node/code/`. These include `qpyclaw_node.py`, `config.py`, `transport.py`, `tools.py`, `voice.py`, `dispatch.py`, `node_main.py`, and `_main.py`.
+- Shared support helpers (`ws_client.py`, `cellular.py`) live in `embed/components/` and are copied into `/usr` along with the runtime during recovery.
+- Board-specific code lives under `embed/boards/ec800mcnle-audio-board/code/` and uses `board_bootstrap.py`, `board_audio.py`, `board_display.py`, `board_power.py`, `board_ui.py`, `board_voice_controller.py`, `board_remote_asr.py`, and `board_remote_tts.py`. Those modules load via `dispatch.py`/`node_main.py`.
+- Media assets (emojis, UI skins) reside in `embed/boards/ec800mcnle-audio-board/resource/ui/emoji/` which are synced to `U:/media/` on the device. `board_ui` tries `U:/media` first and falls back to `/usr/media`.
 
-当前子目录分工：
+## Deploy Flow
 
-1. `runtime/`：设备端实际运行时，只放可部署到设备 `/usr` 的通用 runtime
-2. `deploy/`：部署清单、bootstrap、recover、smoke 等下发与恢复工具
-3. `examples/`：按板型组织的接入示例、样例配置、组合说明
-4. `tests/`：设备端联调与回归验证
-5. `docs/`：node 专项说明
+1. Use `embed/qpyclaw-node/deploy/runtime-manifest.json` to declare files that may be pushed to `/usr`. It now points at `code/` instead of the legacy `usr_mirror` tree.
+2. Run `tools/host/qpy_post_flash_recover.py` to orchestrate recovery, board code sync, and board media sync according to the manifests.
+3. For board-level bring-up, use `embed/qpyclaw-node/examples/ec800mcnle-audio-board/` for reference configs and smoke scripts (`voice_text_smoke.example.py`, `voice_session_main.example.py`).
 
-## 当前边界
+## Getting Started
 
-为避免后续目录再次混乱，当前统一按下面的原则收口：
-
-1. `embed/qpyclaw-node/runtime/` 不再放板型示例，也不放板级专有驱动。
-2. `boards/<board>/code/` 放该板独有的代码，例如音频、屏幕、按键、GPIO、摄像头、马达、板级引脚映射与初始化。
-3. `embed/qpyclaw-node/examples/<board>/` 放“如何把通用 `qpyclaw_node.py` 与这块板的专有代码组合起来”的示例。
-4. 也就是说：板级能力归 `boards`，通用 node runtime 归 `runtime`，组合方法归 `examples`。
+- General runtime: `import qpyclaw_node; qpyclaw_node.run()`  
+- EC800MCNLE board: `import dispatch; dispatch.main()` or `import node_main; node_main.main(open_audio=True)` to exercise the full board UI and voice controller.
+- Read `docs/public/00-quickstart.md` for the bring-up flow and `docs/public/01-config-sample.md` for configuration guidance.

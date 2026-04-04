@@ -78,7 +78,7 @@ python tools/host/qpy_config_local_bootstrap.py `
 
 手写配置时，优先参考：
 
-1. `embed/qpyclaw-node/runtime/usr_mirror/config_local.example.py`
+1. `embed/qpyclaw-node/code/config_local.example.py`
 2. `embed/qpyclaw-node/examples/ec800kcnlc-dev-board/config_local.example.py`
 3. `embed/qpyclaw-node/examples/ec800mcnle-audio-board/config_local.example.py`
 
@@ -133,11 +133,18 @@ qpyclaw_node.run()
 在设备 REPL 中执行：
 
 ```python
-import qpyclaw_board_dispatch
-qpyclaw_board_dispatch.main()
+import dispatch
+dispatch.main()
 ```
 
-这会启动板级 runtime 线程，并把 `board_bootstrap` 注入到通用 `qpyclaw_node.py`。
+或者直接使用板级循环入口：
+
+```python
+import node_main
+node_main.main(open_audio=True)
+```
+
+`dispatch.py` 会加载 `board_bootstrap` 并将 `board_ui`/`BoardVoiceSessionController` 注入到通用 runtime，`node_main.py` 提供手动运行 board 循环，便于调试音频与 UI。
 
 ## 6. 第四步：执行 smoke
 
@@ -218,11 +225,10 @@ import qpyclaw_node as n
 print(n.voice_chat("Please reply in one short English sentence: who are you?"))
 ```
 
-如果你已经把音频板 example 拷到了设备，也可以用：
+如果你想从主机侧直接跑音频板文本语音 smoke，用当前的 host 工具即可：
 
-```python
-import qpyclaw_board_voice_smoke as voice_smoke
-print(voice_smoke.voice_text_smoke())
+```powershell
+python tools/host/qpy_board_voice_smoke.py --port COM19 --mode text --json
 ```
 
 如果第一次返回：

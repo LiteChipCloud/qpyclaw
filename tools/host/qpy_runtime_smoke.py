@@ -10,7 +10,7 @@ Default smoke verifies:
 5. qpy.fs.read execution
 
 Optional board smoke also verifies:
-1. qpyclaw_board_main import
+1. node_main import
 2. qpy.board.status execution
 3. qpy.audio.status execution
 4. qpy.audio.volume.get execution
@@ -123,13 +123,16 @@ def build_import_lines() -> List[str]:
         "_mods=getattr(_sys,'modules',{})",
         "_dummy=('qpyclaw_node' in _mods) and _mods.pop('qpyclaw_node')",
         "_dummy=('config_local' in _mods) and _mods.pop('config_local')",
-        "_dummy=('qpyclaw_board_main' in _mods) and _mods.pop('qpyclaw_board_main')",
-        "_dummy=('qpyclaw_board_dispatch' in _mods) and _mods.pop('qpyclaw_board_dispatch')",
+        "_dummy=('node_main' in _mods) and _mods.pop('node_main')",
+        "_dummy=('dispatch' in _mods) and _mods.pop('dispatch')",
         "_dummy=('board_bootstrap' in _mods) and _mods.pop('board_bootstrap')",
         "_dummy=('board_audio' in _mods) and _mods.pop('board_audio')",
         "_dummy=('board_power' in _mods) and _mods.pop('board_power')",
         "_dummy=('board_display' in _mods) and _mods.pop('board_display')",
         "_dummy=('board_ui' in _mods) and _mods.pop('board_ui')",
+        "_dummy=('board_voice_controller' in _mods) and _mods.pop('board_voice_controller')",
+        "_dummy=('board_remote_asr' in _mods) and _mods.pop('board_remote_asr')",
+        "_dummy=('board_remote_tts' in _mods) and _mods.pop('board_remote_tts')",
         "_p='/usr'; _dummy=(_p in _sys.path) or _sys.path.append(_p)",
         "_p='usr'; _dummy=(_p in _sys.path) or _sys.path.append(_p)",
         "_p='/usr/app'; _dummy=(_p in _sys.path) or _sys.path.append(_p)",
@@ -137,11 +140,7 @@ def build_import_lines() -> List[str]:
         "gc.collect()",
         "_qpy_import_ok='QPY_IMPORT_' + 'OK'",
         "_qpy_import_error='QPY_IMPORT_' + 'ERROR='",
-        "try:",
-        " import qpyclaw_node",
-        " print(_qpy_import_ok)",
-        "except Exception as _qpy_import_exc:",
-        " print(_qpy_import_error + repr(_qpy_import_exc))",
+        "exec('try:\\n import qpyclaw_node\\n print(_qpy_import_ok)\\nexcept Exception as e:\\n print(_qpy_import_error + repr(e))')",
     ]
 
 
@@ -170,16 +169,19 @@ def build_exec_lines(
                 "_p='/usr/board'; _dummy=(_p in _sys.path) or _sys.path.append(_p)",
                 "_p='board'; _dummy=(_p in _sys.path) or _sys.path.append(_p)",
                 "_mods=getattr(_sys,'modules',{})",
-                "_dummy=('qpyclaw_board_main' in _mods) and _mods.pop('qpyclaw_board_main')",
-                "_dummy=('qpyclaw_board_dispatch' in _mods) and _mods.pop('qpyclaw_board_dispatch')",
+                "_dummy=('node_main' in _mods) and _mods.pop('node_main')",
+                "_dummy=('dispatch' in _mods) and _mods.pop('dispatch')",
                 "_dummy=('board_bootstrap' in _mods) and _mods.pop('board_bootstrap')",
                 "_dummy=('board_audio' in _mods) and _mods.pop('board_audio')",
                 "_dummy=('board_power' in _mods) and _mods.pop('board_power')",
                 "_dummy=('board_display' in _mods) and _mods.pop('board_display')",
                 "_dummy=('board_ui' in _mods) and _mods.pop('board_ui')",
-                "import qpyclaw_board_main",
+                "_dummy=('board_voice_controller' in _mods) and _mods.pop('board_voice_controller')",
+                "_dummy=('board_remote_asr' in _mods) and _mods.pop('board_remote_asr')",
+                "_dummy=('board_remote_tts' in _mods) and _mods.pop('board_remote_tts')",
+                "import node_main",
                 "board_entry_import_ok = True",
-                "board_entry_module = str(getattr(qpyclaw_board_main, '__file__', '') or '')",
+                "board_entry_module = str(getattr(node_main, '__file__', '') or '')",
                 "from board_bootstrap import create_qpyclaw_extension",
                 "extension = create_qpyclaw_extension(enable_charge=True, enable_display=True, open_audio=False)",
                 "runner = qpyclaw_node.ToolRunner(cfg, state, extension)",
@@ -322,13 +324,16 @@ def build_exec_board_prepare_lines() -> List[str]:
         "_p='/usr/board'; _dummy=(_p in _sys.path) or _sys.path.append(_p)",
         "_p='board'; _dummy=(_p in _sys.path) or _sys.path.append(_p)",
         "_mods=getattr(_sys,'modules',{})",
-        "_dummy=('qpyclaw_board_main' in _mods) and _mods.pop('qpyclaw_board_main')",
-        "_dummy=('qpyclaw_board_dispatch' in _mods) and _mods.pop('qpyclaw_board_dispatch')",
+        "_dummy=('node_main' in _mods) and _mods.pop('node_main')",
+        "_dummy=('dispatch' in _mods) and _mods.pop('dispatch')",
         "_dummy=('board_bootstrap' in _mods) and _mods.pop('board_bootstrap')",
         "_dummy=('board_audio' in _mods) and _mods.pop('board_audio')",
         "_dummy=('board_power' in _mods) and _mods.pop('board_power')",
         "_dummy=('board_display' in _mods) and _mods.pop('board_display')",
         "_dummy=('board_ui' in _mods) and _mods.pop('board_ui')",
+        "_dummy=('board_voice_controller' in _mods) and _mods.pop('board_voice_controller')",
+        "_dummy=('board_remote_asr' in _mods) and _mods.pop('board_remote_asr')",
+        "_dummy=('board_remote_tts' in _mods) and _mods.pop('board_remote_tts')",
         "gc.collect()",
         "print('QPY_SMOKE_BOARD_PREP_OK')",
     ]
@@ -337,7 +342,7 @@ def build_exec_board_prepare_lines() -> List[str]:
 
 def build_exec_board_import_lines() -> List[str]:
     return [
-        "import qpyclaw_board_main",
+        "import node_main",
         "print('QPY_SMOKE_BOARD_IMPORT_OK')",
     ]
 
@@ -346,7 +351,7 @@ def build_exec_bootstrap_lines(board_smoke: bool) -> List[str]:
     if board_smoke:
         lines = [
             "board_entry_import_ok = True",
-            "board_entry_module = str(getattr(qpyclaw_board_main, '__file__', '') or '')",
+            "board_entry_module = str(getattr(node_main, '__file__', '') or '')",
             "from board_bootstrap import create_qpyclaw_extension",
             "extension = create_qpyclaw_extension(enable_charge=True, enable_display=True, open_audio=False)",
             "runner = qpyclaw_node.ToolRunner(cfg, state, extension)",
@@ -693,7 +698,7 @@ def main() -> int:
         build_import_lines(),
         timeout=max(20, int(args.timeout)),
         line_delay_ms=70,
-        settle_ms=15000,
+        settle_ms=35000,
     )
     raw = raw_import
     if "QPY_IMPORT_OK" in raw_import:
@@ -710,7 +715,7 @@ def main() -> int:
                 int(args.voice_chat_history_limit),
             )
         )
-        exec_settle_ms = 16000 if board_smoke else 9000
+        exec_settle_ms = 35000 if board_smoke else 15000
         if voice_probe_enabled:
             exec_settle_ms = max(exec_settle_ms, int(args.voice_chat_timeout_ms) + 12000)
         raw_exec = cli.repl_send_lines(

@@ -17,6 +17,6 @@ _ensure_path("usr")
 _ensure_path("/usr/board")
 _ensure_path("board")
 
-import qpyclaw_board_main
+import dispatch
 
-qpyclaw_board_main.main()
+dispatch.main()

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Synchronize a local usr_mirror tree to a QuecPython device /usr path.
+Synchronize a local runtime source tree to a QuecPython device /usr path.
 
 This is intended for post-flash recovery, where the module file system is
 reset and the qpyclaw runtime needs to be restored quickly.
@@ -15,9 +15,9 @@ import re
 import sys
 from typing import Any, Dict, List
 
-LEGACY_LOCAL_ROOT = pathlib.Path(
+DEFAULT_LOCAL_ROOT = pathlib.Path(
     r"C:\Users\kingd\Desktop\code\lcc-ai-team\embed\project\qpyclaw\embed"
-    r"\qpyclaw-node\runtime\usr_mirror"
+    r"\qpyclaw-node\code"
 )
 DEFAULT_MANIFEST = pathlib.Path(
     r"C:\Users\kingd\Desktop\code\lcc-ai-team\embed\project\qpyclaw\embed"
@@ -38,14 +38,14 @@ def load_qpy_fs_cli():
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Sync a local usr_mirror tree to a QuecPython device."
+        description="Sync a local qpyclaw runtime source tree to a QuecPython device."
     )
     parser.add_argument("--port", default="COM14", help="REPL port.")
     parser.add_argument("--baud", type=int, default=115200, help="REPL baudrate.")
     parser.add_argument(
         "--local-root",
         default="",
-        help="Local usr_mirror root directory. Defaults to manifest local_root_rel or legacy path.",
+        help="Local runtime source root. Defaults to manifest local_root_rel or the canonical code directory.",
     )
     parser.add_argument(
         "--remote-root",
@@ -60,7 +60,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--ignore-manifest",
         action="store_true",
-        help="Ignore manifest and sync the whole local tree (legacy behavior).",
+        help="Ignore manifest and sync the whole local tree rooted at --local-root.",
     )
     parser.add_argument(
         "--skip-remove",
@@ -140,7 +140,34 @@ def resolve_local_root(arg_value: str, manifest_path: pathlib.Path, manifest: Di
     local_root_rel = str(manifest.get("local_root_rel") or "").strip()
     if local_root_rel:
         return (manifest_path.parent / local_root_rel).resolve()
-    return LEGACY_LOCAL_ROOT.resolve()
+    return DEFAULT_LOCAL_ROOT.resolve()
+
+
+def resolve_source_root(
+    manifest_path: pathlib.Path,
+    default_local_root: pathlib.Path,
+    raw_entry: Dict[str, Any],
+) -> pathlib.Path:
+    source_root_rel = str(raw_entry.get("source_root_rel") or "").strip()
+    if source_root_rel:
+        return (manifest_path.parent / source_root_rel).resolve()
+    return default_local_root
+
+
+def parse_manifest_file_entry(
+    manifest_path: pathlib.Path,
+    default_local_root: pathlib.Path,
+    raw_entry: Any,
+) -> tuple[str, pathlib.Path]:
+    if isinstance(raw_entry, str):
+        rel_path = normalize_rel_path(raw_entry)
+        return rel_path, local_from_rel(default_local_root, rel_path)
+    if not isinstance(raw_entry, dict):
+        raise SystemExit("Manifest files entries must be strings or objects: %s" % manifest_path)
+    rel_path = normalize_rel_path(str(raw_entry.get("path") or raw_entry.get("target") or ""))
+    source_path = normalize_rel_path(str(raw_entry.get("source_path") or raw_entry.get("source") or rel_path))
+    source_root = resolve_source_root(manifest_path, default_local_root, raw_entry)
+    return rel_path, local_from_rel(source_root, source_path)
 
 
 def resolve_remote_root(arg_value: str, manifest: Dict[str, Any]) -> str:
@@ -164,8 +191,7 @@ def build_manifest_plan(
     local_files: List[pathlib.Path] = []
     dir_set = {""}
     for raw in raw_files:
-        rel = normalize_rel_path(raw)
-        src = local_from_rel(local_root, rel)
+        rel, src = parse_manifest_file_entry(manifest_path, local_root, raw)
         if not src.is_file():
             raise SystemExit("Manifest file missing under local root: %s" % src)
         rel_files.append(rel)

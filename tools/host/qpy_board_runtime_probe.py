@@ -3,7 +3,7 @@
 Launch and probe the EC800MCNLE board runtime from the host side.
 
 Workflow:
-1. Optionally dispatch `/usr/qpyclaw_board_dispatch.py` on the device.
+1. Optionally dispatch `/usr/dispatch.py` on the device.
 2. Wait for the board thread to bring `qpyclaw-node` online.
 3. Read `qpyclaw_node.debug_snapshot()`.
 4. Execute a small set of local board/runtime commands.
@@ -42,7 +42,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--timeout", type=int, default=90, help="REPL timeout seconds.")
     parser.add_argument(
         "--dispatch-path",
-        default="/usr/qpyclaw_board_dispatch.py",
+        default="/usr/dispatch.py",
         help="Device script used to start board runtime.",
     )
     parser.add_argument(
@@ -100,7 +100,7 @@ def normalize_exec_path(path: str) -> str:
     text = str(path or "").strip().replace("\\", "/")
     while text.startswith("/"):
         text = text[1:]
-    return text or "usr/qpyclaw_board_dispatch.py"
+    return text or "usr/dispatch.py"
 
 
 def dispatch_module_name(dispatch_path: str) -> str:
@@ -108,7 +108,7 @@ def dispatch_module_name(dispatch_path: str) -> str:
     name = pathlib.PurePosixPath(exec_path).name
     if name.lower().endswith(".py"):
         name = name[:-3]
-    return name or "qpyclaw_board_dispatch"
+    return name or "dispatch"
 
 
 def build_dispatch_lines(dispatch_path: str) -> List[str]:

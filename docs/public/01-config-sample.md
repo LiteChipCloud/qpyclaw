@@ -26,7 +26,7 @@ flowchart TD
 
 | 文件 | 用途 |
 | --- | --- |
-| `embed/qpyclaw-node/runtime/usr_mirror/config_local.example.py` | 通用最小样例 |
+| `embed/qpyclaw-node/code/config_local.example.py` | 通用最小样例 |
 | `embed/qpyclaw-node/examples/ec800kcnlc-dev-board/config_local.example.py` | `EC800KCNLC` 板级样例 |
 | `embed/qpyclaw-node/examples/ec800mcnle-audio-board/config_local.example.py` | `EC800MCNLE` 板级样例 |
 

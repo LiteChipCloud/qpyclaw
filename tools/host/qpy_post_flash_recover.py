@@ -143,12 +143,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--local-root",
         default="",
-        help="Local usr_mirror root override for qpy_usr_mirror_sync.py.",
+        help="Local runtime source root override for qpy_usr_mirror_sync.py.",
     )
     parser.add_argument(
         "--remote-root",
         default="",
-        help="Remote root override for qpy_usr_mirror_sync.py.",
+        help="Remote runtime root override for qpy_usr_mirror_sync.py.",
     )
     parser.add_argument(
         "--ignore-manifest",
@@ -240,7 +240,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--board-probe-skip-dispatch",
         action="store_true",
-        help="Probe current board runtime without re-running qpyclaw_board_dispatch.py.",
+        help="Probe current board runtime without re-running dispatch.py.",
     )
     parser.add_argument(
         "--board-probe-attempts",
