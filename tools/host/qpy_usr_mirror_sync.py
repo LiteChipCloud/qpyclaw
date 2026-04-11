@@ -295,9 +295,21 @@ def is_memory_push_failure(result: Dict[str, Any]) -> bool:
     return False
 
 
+def is_effective_push_success(result: Dict[str, Any]) -> bool:
+    try:
+        local_size = int(result.get("local_size"))
+        bytes_written = int(result.get("bytes_written"))
+        remote_size = int(result.get("remote_size"))
+    except Exception:
+        return False
+    if local_size < 0:
+        return False
+    return bytes_written == local_size and remote_size == local_size
+
+
 def should_stream_push(src: pathlib.Path) -> bool:
     try:
-        return int(src.stat().st_size) > 65536
+        return int(src.stat().st_size) > 49152
     except Exception:
         return False
 
@@ -317,8 +329,8 @@ def _stream_init_push(cli, port: str, baud: int, remote_dir: str, tmp_path: str,
         baud,
         lines,
         timeout=max(12, timeout),
-        line_delay_ms=55,
-        settle_ms=1800,
+        line_delay_ms=12,
+        settle_ms=260,
     )
     has_error = any(x in raw for x in ["ERR:", "Traceback", "ParserError", "At line:"])
     return {"ok": ("stream_init_ok" in raw or "True" in raw) and (not has_error), "raw": raw}
@@ -351,8 +363,8 @@ def _stream_append_push(
         baud,
         lines,
         timeout=max(12, timeout),
-        line_delay_ms=55,
-        settle_ms=1500,
+        line_delay_ms=10,
+        settle_ms=220,
     )
     matches = re.findall(r"stream_append_ok\s+(\d+)", raw or "")
     written = int(matches[-1]) if matches else -1
@@ -395,8 +407,8 @@ def _stream_finish_push(
         baud,
         lines,
         timeout=max(12, timeout),
-        line_delay_ms=55,
-        settle_ms=1200,
+        line_delay_ms=12,
+        settle_ms=240,
     )
     matches = re.findall(r"stream_finish_ok\s+(\d+)", raw or "")
     remote_size = int(matches[-1]) if matches else -1
@@ -436,8 +448,8 @@ def run_stream_push_repl(
     remote_dir: str,
     remote_name: str,
     timeout: int,
-    chunk_size: int = 96,
-    batch_chunks: int = 6,
+    chunk_size: int = 512,
+    batch_chunks: int = 32,
 ) -> Dict[str, Any]:
     data = src.read_bytes()
     remote_path = join_remote_path(remote_dir, remote_name)
@@ -538,16 +550,30 @@ def run_stream_push_repl(
         remote_name,
         timeout=max(12, timeout),
     )
+    final_remote_size = int(finish_result.get("remote_size", -1))
+    diagnostics: List[str] = []
+    if final_remote_size != len(data):
+        stat_remote_size = _read_remote_size(
+            cli,
+            port,
+            baud,
+            remote_path,
+            timeout=max(12, timeout),
+        )
+        if stat_remote_size >= 0:
+            final_remote_size = int(stat_remote_size)
+    if (not bool(finish_result.get("ok"))) and final_remote_size == len(data):
+        diagnostics.append("STREAM_FINISH_CONFIRMED_BY_STAT")
     return {
-        "ok": bool(finish_result.get("ok")) and total_written == len(data) and int(finish_result.get("remote_size", -1)) == len(data),
+        "ok": total_written == len(data) and final_remote_size == len(data),
         "raw": finish_result.get("raw", ""),
         "local_size": len(data),
         "bytes_written": total_written,
-        "remote_size": int(finish_result.get("remote_size", -1)),
+        "remote_size": int(final_remote_size),
         "remote_path": remote_path,
         "chunks": len(chunks),
         "backend": "repl_stream",
-        "diagnostics": [],
+        "diagnostics": diagnostics,
     }
 
 
@@ -670,7 +696,37 @@ def main() -> int:
         if rel_parent == ".":
             rel_parent = ""
         remote_dir = join_remote_path(remote_root, rel_parent)
-        remote_path = join_remote_path(remote_dir, src.name)
+        remote_name = pathlib.PurePosixPath(rel).name
+        remote_path = join_remote_path(remote_dir, remote_name)
+        try:
+            local_size = int(src.stat().st_size)
+        except Exception:
+            local_size = -1
+        remote_size_before = _read_remote_size(
+            cli,
+            args.port,
+            int(args.baud),
+            remote_path,
+            timeout=timeout,
+        )
+        if local_size >= 0 and remote_size_before == local_size:
+            summary["push"].append(
+                {
+                    "local_file": str(src),
+                    "remote_dir": remote_dir,
+                    "remote_path": remote_path,
+                    "remote_name": remote_name,
+                    "ok": True,
+                    "remote_size": int(remote_size_before),
+                    "local_size": int(local_size),
+                    "diagnostics": ["SKIPPED_SAME_SIZE"],
+                    "raw": "",
+                    "retried_after_no_space": False,
+                    "deleted_existing_before_retry": False,
+                    "delete_existing_raw": "",
+                }
+            )
+            continue
         if should_stream_push(src):
             result = run_stream_push_repl(
                 cli,
@@ -678,7 +734,7 @@ def main() -> int:
                 int(args.baud),
                 src,
                 remote_dir,
-                src.name,
+                remote_name,
                 timeout=timeout,
             )
         else:
@@ -687,7 +743,7 @@ def main() -> int:
                 int(args.baud),
                 str(src),
                 remote_dir,
-                src.name,
+                remote_name,
                 timeout=timeout,
             )
         retry_delete_old = False
@@ -701,7 +757,7 @@ def main() -> int:
                 int(args.baud),
                 src,
                 remote_dir,
-                src.name,
+                remote_name,
                 timeout=timeout,
             )
         if (not bool(result.get("ok"))) and is_no_space_push_failure(result):
@@ -721,18 +777,22 @@ def main() -> int:
                     int(args.baud),
                     str(src),
                     remote_dir,
-                    src.name,
+                    remote_name,
                     timeout=timeout,
                 )
+        effective_ok = bool(result.get("ok")) or is_effective_push_success(result)
+        diagnostics = list(result.get("diagnostics", []) or [])
+        if effective_ok and (not bool(result.get("ok"))):
+            diagnostics.append("EFFECTIVE_SUCCESS_DESPITE_STALE_ERROR_OUTPUT")
         row = {
             "local_file": str(src),
             "remote_dir": remote_dir,
             "remote_path": remote_path,
-            "remote_name": src.name,
-            "ok": bool(result.get("ok")),
+            "remote_name": remote_name,
+            "ok": effective_ok,
             "remote_size": result.get("remote_size"),
             "local_size": result.get("local_size"),
-            "diagnostics": result.get("diagnostics", []),
+            "diagnostics": diagnostics,
             "raw": result.get("raw", ""),
             "retried_after_no_space": bool(retried),
             "deleted_existing_before_retry": bool(retry_delete_old),

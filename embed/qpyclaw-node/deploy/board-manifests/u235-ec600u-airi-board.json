@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "name": "u235-ec600u-airi-board-code",
+  "local_root_rel": "../../../boards/u235-ec600u-airi-board/code",
+  "remote_root": "/usr/board",
+  "files": [
+    "board_airi_data.py",
+    "board_airi_animimg_player.py",
+    "board_airi_expression_data.py",
+    "board_airi_frame_player.py",
+    "board_airi_scene.py",
+    "board_display.py",
+    "board_gif_player.py",
+    "board_miaoban_player.py",
+    "board_ui.py",
+    "board_bootstrap.py"
+  ],
+  "preserve_remote_files": [],
+  "remove_remote_files": []
+}

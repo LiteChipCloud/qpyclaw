@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "name": "u235-ec600u-airi-board-media-smoke",
+  "local_root_rel": ".",
+  "remote_root": "/usr/media/expressions",
+  "files": [
+    "happy/frame-000.rgb565"
+  ],
+  "preserve_remote_files": [],
+  "remove_remote_files": []
+}

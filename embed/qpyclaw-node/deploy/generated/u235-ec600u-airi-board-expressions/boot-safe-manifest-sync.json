@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "name": "u235-ec600u-airi-board-boot-safe-manifest",
+  "local_root_rel": ".",
+  "remote_root": "/usr/media/expressions",
+  "files": [
+    {
+      "path": "manifest.json",
+      "source_path": "boot-safe-manifest.json"
+    }
+  ],
+  "preserve_remote_files": [],
+  "remove_remote_files": []
+}

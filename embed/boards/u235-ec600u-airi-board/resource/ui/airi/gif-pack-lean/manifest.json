@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "default": "talk_open",
+  "expressions": {
+    "talk_open": {
+      "width": 176,
+      "height": 176,
+      "zoom": 320,
+      "tick_step": 1,
+      "loop": true,
+      "label": "talk_open",
+      "frames": [
+        "talk_open/frame-000.rgb565",
+        "talk_open/frame-001.rgb565",
+        "talk_open/frame-002.rgb565",
+        "talk_open/frame-003.rgb565"
+      ]
+    },
+    "listen_focus": {
+      "width": 176,
+      "height": 176,
+      "zoom": 320,
+      "tick_step": 2,
+      "loop": true,
+      "label": "listen_focus",
+      "frames": [
+        "listen_focus/frame-000.rgb565",
+        "listen_focus/frame-001.rgb565",
+        "listen_focus/frame-002.rgb565",
+        "listen_focus/frame-001.rgb565"
+      ]
+    },
+    "idle_blink": {
+      "width": 176,
+      "height": 176,
+      "zoom": 320,
+      "tick_step": 3,
+      "loop": true,
+      "label": "idle_blink",
+      "frames": [
+        "idle_blink/frame-000.rgb565",
+        "idle_blink/frame-001.rgb565",
+        "idle_blink/frame-000.rgb565"
+      ]
+    }
+  }
+}

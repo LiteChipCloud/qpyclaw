@@ -1,0 +1,426 @@
+{
+  "version": 1,
+  "default": "idle_blink",
+  "expressions": {
+    "idle_blink": {
+      "width": 176,
+      "height": 176,
+      "zoom": 320,
+      "tick_step": 4,
+      "loop": true,
+      "label": "Idle Blink",
+      "frame_format": "rgb565",
+      "frames": [
+        "idle_blink/frame-000.rgb565",
+        "idle_blink/frame-000.rgb565",
+        "idle_blink/frame-000.rgb565",
+        "idle_blink/frame-000.rgb565",
+        "idle_blink/frame-000.rgb565"
+      ]
+    },
+    "listen_focus": {
+      "width": 176,
+      "height": 176,
+      "zoom": 320,
+      "tick_step": 3,
+      "loop": true,
+      "label": "Listen Focus",
+      "frame_format": "rgb565",
+      "frames": [
+        "listen_focus/frame-000.rgb565",
+        "listen_focus/frame-001.rgb565",
+        "listen_focus/frame-001.rgb565",
+        "listen_focus/frame-000.rgb565"
+      ]
+    },
+    "talk_smile": {
+      "width": 176,
+      "height": 176,
+      "zoom": 320,
+      "tick_step": 2,
+      "loop": true,
+      "label": "Talk Smile",
+      "frame_format": "rgb565",
+      "frames": [
+        "talk_smile/frame-000.rgb565",
+        "talk_smile/frame-001.rgb565",
+        "talk_smile/frame-002.rgb565"
+      ]
+    },
+    "talk_open": {
+      "width": 176,
+      "height": 176,
+      "zoom": 320,
+      "tick_step": 2,
+      "loop": true,
+      "label": "Talk Open",
+      "frame_format": "rgb565",
+      "frames": [
+        "talk_open/frame-000.rgb565",
+        "talk_open/frame-001.rgb565",
+        "talk_open/frame-002.rgb565"
+      ]
+    },
+    "happy_pop": {
+      "width": 176,
+      "height": 176,
+      "zoom": 320,
+      "tick_step": 2,
+      "loop": false,
+      "label": "Happy Pop",
+      "frame_format": "rgb565",
+      "frames": [
+        "talk_smile/frame-000.rgb565",
+        "happy_pop/frame-001.rgb565",
+        "happy_pop/frame-002.rgb565",
+        "happy_pop/frame-003.rgb565"
+      ]
+    },
+    "sad_soft": {
+      "width": 176,
+      "height": 176,
+      "zoom": 320,
+      "tick_step": 3,
+      "loop": false,
+      "label": "Sad Soft",
+      "frame_format": "rgb565",
+      "frames": [
+        "sad_soft/frame-000.rgb565",
+        "sad_soft/frame-001.rgb565",
+        "sad_soft/frame-002.rgb565",
+        "sad_soft/frame-003.rgb565"
+      ]
+    },
+    "angry_fire": {
+      "width": 176,
+      "height": 176,
+      "zoom": 320,
+      "tick_step": 2,
+      "loop": false,
+      "label": "Angry Fire",
+      "frame_format": "rgb565",
+      "frames": [
+        "angry_fire/frame-000.rgb565",
+        "angry_fire/frame-001.rgb565",
+        "angry_fire/frame-002.rgb565"
+      ]
+    },
+    "sleep_breath": {
+      "width": 176,
+      "height": 176,
+      "zoom": 320,
+      "tick_step": 4,
+      "loop": true,
+      "label": "Sleep Breath",
+      "frame_format": "rgb565",
+      "frames": [
+        "sleep_breath/frame-000.rgb565",
+        "sleep_breath/frame-001.rgb565",
+        "sleep_breath/frame-002.rgb565",
+        "sleep_breath/frame-003.rgb565"
+      ]
+    },
+    "shock_hold": {
+      "width": 176,
+      "height": 176,
+      "zoom": 320,
+      "tick_step": 2,
+      "loop": false,
+      "label": "Shock Hold",
+      "frame_format": "rgb565",
+      "frames": [
+        "shock_hold/frame-000.rgb565",
+        "shock_hold/frame-001.rgb565",
+        "shock_hold/frame-002.rgb565"
+      ]
+    },
+    "wink_ping": {
+      "width": 176,
+      "height": 176,
+      "zoom": 320,
+      "tick_step": 2,
+      "loop": false,
+      "label": "Wink Ping",
+      "frame_format": "rgb565",
+      "frames": [
+        "wink_ping/frame-000.rgb565",
+        "wink_ping/frame-001.rgb565",
+        "wink_ping/frame-001.rgb565"
+      ]
+    },
+    "neutral": {
+      "width": 176,
+      "height": 176,
+      "zoom": 320,
+      "tick_step": 4,
+      "loop": true,
+      "label": "neutral",
+      "frames": [
+        "idle_blink/frame-000.rgb565",
+        "idle_blink/frame-000.rgb565",
+        "idle_blink/frame-000.rgb565",
+        "idle_blink/frame-000.rgb565",
+        "idle_blink/frame-000.rgb565"
+      ]
+    },
+    "relaxed": {
+      "width": 176,
+      "height": 176,
+      "zoom": 320,
+      "tick_step": 4,
+      "loop": true,
+      "label": "relaxed",
+      "frames": [
+        "idle_blink/frame-000.rgb565",
+        "idle_blink/frame-000.rgb565",
+        "idle_blink/frame-000.rgb565",
+        "idle_blink/frame-000.rgb565",
+        "idle_blink/frame-000.rgb565"
+      ]
+    },
+    "thinking": {
+      "width": 176,
+      "height": 176,
+      "zoom": 320,
+      "tick_step": 3,
+      "loop": true,
+      "label": "thinking",
+      "frames": [
+        "listen_focus/frame-000.rgb565",
+        "listen_focus/frame-001.rgb565",
+        "listen_focus/frame-001.rgb565",
+        "listen_focus/frame-000.rgb565"
+      ]
+    },
+    "confused": {
+      "width": 176,
+      "height": 176,
+      "zoom": 320,
+      "tick_step": 3,
+      "loop": true,
+      "label": "confused",
+      "frames": [
+        "listen_focus/frame-000.rgb565",
+        "listen_focus/frame-001.rgb565",
+        "listen_focus/frame-001.rgb565",
+        "listen_focus/frame-000.rgb565"
+      ]
+    },
+    "happy": {
+      "width": 176,
+      "height": 176,
+      "zoom": 320,
+      "tick_step": 2,
+      "loop": false,
+      "label": "happy",
+      "frames": [
+        "talk_smile/frame-000.rgb565",
+        "happy_pop/frame-001.rgb565",
+        "happy_pop/frame-002.rgb565",
+        "happy_pop/frame-003.rgb565"
+      ]
+    },
+    "laughing": {
+      "width": 176,
+      "height": 176,
+      "zoom": 320,
+      "tick_step": 2,
+      "loop": true,
+      "label": "laughing",
+      "frames": [
+        "talk_open/frame-000.rgb565",
+        "talk_open/frame-001.rgb565",
+        "talk_open/frame-002.rgb565"
+      ]
+    },
+    "loving": {
+      "width": 176,
+      "height": 176,
+      "zoom": 320,
+      "tick_step": 2,
+      "loop": false,
+      "label": "loving",
+      "frames": [
+        "talk_smile/frame-000.rgb565",
+        "happy_pop/frame-001.rgb565",
+        "happy_pop/frame-002.rgb565",
+        "happy_pop/frame-003.rgb565"
+      ]
+    },
+    "cool": {
+      "width": 176,
+      "height": 176,
+      "zoom": 320,
+      "tick_step": 2,
+      "loop": false,
+      "label": "cool",
+      "frames": [
+        "talk_smile/frame-000.rgb565",
+        "happy_pop/frame-001.rgb565",
+        "happy_pop/frame-002.rgb565",
+        "happy_pop/frame-003.rgb565"
+      ]
+    },
+    "confident": {
+      "width": 176,
+      "height": 176,
+      "zoom": 320,
+      "tick_step": 2,
+      "loop": false,
+      "label": "confident",
+      "frames": [
+        "talk_smile/frame-000.rgb565",
+        "happy_pop/frame-001.rgb565",
+        "happy_pop/frame-002.rgb565",
+        "happy_pop/frame-003.rgb565"
+      ]
+    },
+    "delicious": {
+      "width": 176,
+      "height": 176,
+      "zoom": 320,
+      "tick_step": 2,
+      "loop": false,
+      "label": "delicious",
+      "frames": [
+        "talk_smile/frame-000.rgb565",
+        "happy_pop/frame-001.rgb565",
+        "happy_pop/frame-002.rgb565",
+        "happy_pop/frame-003.rgb565"
+      ]
+    },
+    "funny": {
+      "width": 176,
+      "height": 176,
+      "zoom": 320,
+      "tick_step": 2,
+      "loop": true,
+      "label": "funny",
+      "frames": [
+        "talk_smile/frame-000.rgb565",
+        "talk_smile/frame-001.rgb565",
+        "talk_smile/frame-002.rgb565"
+      ]
+    },
+    "sad": {
+      "width": 176,
+      "height": 176,
+      "zoom": 320,
+      "tick_step": 3,
+      "loop": false,
+      "label": "sad",
+      "frames": [
+        "sad_soft/frame-000.rgb565",
+        "sad_soft/frame-001.rgb565",
+        "sad_soft/frame-002.rgb565",
+        "sad_soft/frame-003.rgb565"
+      ]
+    },
+    "crying": {
+      "width": 176,
+      "height": 176,
+      "zoom": 320,
+      "tick_step": 3,
+      "loop": false,
+      "label": "crying",
+      "frames": [
+        "sad_soft/frame-000.rgb565",
+        "sad_soft/frame-001.rgb565",
+        "sad_soft/frame-002.rgb565",
+        "sad_soft/frame-003.rgb565"
+      ]
+    },
+    "angry": {
+      "width": 176,
+      "height": 176,
+      "zoom": 320,
+      "tick_step": 2,
+      "loop": false,
+      "label": "angry",
+      "frames": [
+        "angry_fire/frame-000.rgb565",
+        "angry_fire/frame-001.rgb565",
+        "angry_fire/frame-002.rgb565"
+      ]
+    },
+    "sleep": {
+      "width": 176,
+      "height": 176,
+      "zoom": 320,
+      "tick_step": 4,
+      "loop": true,
+      "label": "sleep",
+      "frames": [
+        "sleep_breath/frame-000.rgb565",
+        "sleep_breath/frame-001.rgb565",
+        "sleep_breath/frame-002.rgb565",
+        "sleep_breath/frame-003.rgb565"
+      ]
+    },
+    "surprised": {
+      "width": 176,
+      "height": 176,
+      "zoom": 320,
+      "tick_step": 2,
+      "loop": false,
+      "label": "surprised",
+      "frames": [
+        "shock_hold/frame-000.rgb565",
+        "shock_hold/frame-001.rgb565",
+        "shock_hold/frame-002.rgb565"
+      ]
+    },
+    "winking": {
+      "width": 176,
+      "height": 176,
+      "zoom": 320,
+      "tick_step": 2,
+      "loop": false,
+      "label": "winking",
+      "frames": [
+        "wink_ping/frame-000.rgb565",
+        "wink_ping/frame-001.rgb565",
+        "wink_ping/frame-001.rgb565"
+      ]
+    },
+    "embarrassed": {
+      "width": 176,
+      "height": 176,
+      "zoom": 320,
+      "tick_step": 2,
+      "loop": false,
+      "label": "embarrassed",
+      "frames": [
+        "wink_ping/frame-000.rgb565",
+        "wink_ping/frame-001.rgb565",
+        "wink_ping/frame-001.rgb565"
+      ]
+    },
+    "kissy": {
+      "width": 176,
+      "height": 176,
+      "zoom": 320,
+      "tick_step": 2,
+      "loop": false,
+      "label": "kissy",
+      "frames": [
+        "wink_ping/frame-000.rgb565",
+        "wink_ping/frame-001.rgb565",
+        "wink_ping/frame-001.rgb565"
+      ]
+    },
+    "silly": {
+      "width": 176,
+      "height": 176,
+      "zoom": 320,
+      "tick_step": 2,
+      "loop": true,
+      "label": "silly",
+      "frames": [
+        "talk_smile/frame-000.rgb565",
+        "talk_smile/frame-001.rgb565",
+        "talk_smile/frame-002.rgb565"
+      ]
+    }
+  }
+}

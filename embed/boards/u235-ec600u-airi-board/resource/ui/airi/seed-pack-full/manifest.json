@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "default": "idle_blink",
+  "expressions": {
+    "idle_blink": {
+      "width": 176,
+      "height": 176,
+      "zoom": 320,
+      "tick_step": 3,
+      "loop": true,
+      "label": "Idle Blink",
+      "frames": [
+        "idle_blink/frame-000.rgb565",
+        "idle_blink/frame-001.rgb565",
+        "idle_blink/frame-002.rgb565",
+        "idle_blink/frame-003.rgb565",
+        "idle_blink/frame-004.rgb565",
+        "idle_blink/frame-005.rgb565",
+        "idle_blink/frame-006.rgb565"
+      ]
+    },
+    "listen_focus": {
+      "width": 176,
+      "height": 176,
+      "zoom": 320,
+      "tick_step": 2,
+      "loop": true,
+      "label": "Listen Focus",
+      "frames": [
+        "listen_focus/frame-000.rgb565",
+        "listen_focus/frame-001.rgb565",
+        "listen_focus/frame-002.rgb565",
+        "listen_focus/frame-003.rgb565"
+      ]
+    },
+    "talk_open": {
+      "width": 176,
+      "height": 176,
+      "zoom": 320,
+      "tick_step": 1,
+      "loop": true,
+      "label": "Talk Open",
+      "frames": [
+        "talk_open/frame-000.rgb565",
+        "talk_open/frame-001.rgb565",
+        "talk_open/frame-002.rgb565",
+        "talk_open/frame-003.rgb565"
+      ]
+    }
+  }
+}
