@@ -544,6 +544,24 @@ class CellularNetworkManager(object):
         self.last_recovery_result = ""
         self.last_ip_address = ""
         self.pending_transport_close_reason = ""
+        _thr = safe_import("_thread")
+        self._event_lock = None
+        if _thr is not None and hasattr(_thr, "allocate_lock"):
+            try:
+                self._event_lock = _thr.allocate_lock()
+            except Exception:
+                pass
+
+    def _event_acquire(self):
+        if self._event_lock is not None:
+            self._event_lock.acquire()
+
+    def _event_release(self):
+        if self._event_lock is not None:
+            try:
+                self._event_lock.release()
+            except Exception:
+                pass
 
     def attach_runtime(self, runtime):
         self.runtime = runtime
@@ -601,10 +619,14 @@ class CellularNetworkManager(object):
         return True
 
     def poll(self):
-        reason = self.pending_transport_close_reason
+        self._event_acquire()
+        try:
+            reason = self.pending_transport_close_reason
+            self.pending_transport_close_reason = ""
+        finally:
+            self._event_release()
         if not reason:
             return False
-        self.pending_transport_close_reason = ""
         runtime = self.runtime
         if runtime is None or runtime.transport is None:
             return False
@@ -660,32 +682,35 @@ class CellularNetworkManager(object):
         return self._remember_quick(quick_network_status(self.cfg), "quick.final")
 
     def _on_data_call_event(self, args):
-        self.last_event_ms = utime.ticks_ms()
+        self._event_acquire()
         try:
-            self.last_event_profile = int(args[0])
-        except Exception:
-            self.last_event_profile = -1
-        try:
-            self.last_event_state = int(args[1])
-        except Exception:
-            self.last_event_state = -1
+            self.last_event_ms = utime.ticks_ms()
+            try:
+                self.last_event_profile = int(args[0])
+            except Exception:
+                self.last_event_profile = -1
+            try:
+                self.last_event_state = int(args[1])
+            except Exception:
+                self.last_event_state = -1
 
-        if self.last_event_state == 1:
-            self.last_ready = True
-            self.last_stage = 3
-            self.last_state = 1
-            self.last_reason = "pdp.connected"
-            self.pending_transport_close_reason = ""
-            return
-
+            if self.last_event_state == 1:
+                self.last_ready = True
+                self.last_stage = 3
+                self.last_state = 1
+                self.last_reason = "pdp.connected"
+                self.pending_transport_close_reason = ""
+            elif self.last_event_state == 0:
+                self.last_ready = False
+                self.last_stage = 3
+                self.last_state = 0
+                self.last_reason = "pdp.disconnected"
+                if bool(getattr(self.cfg, "NETWORK_CLOSE_TRANSPORT_ON_PDP_DOWN", True)):
+                    self.pending_transport_close_reason = "network-disconnected"
+        finally:
+            self._event_release()
         if self.last_event_state == 0:
-            self.last_ready = False
-            self.last_stage = 3
-            self.last_state = 0
-            self.last_reason = "pdp.disconnected"
             self.state.note_error("NETWORK_LINK_DOWN", "dataCall callback: disconnected")
-            if bool(getattr(self.cfg, "NETWORK_CLOSE_TRANSPORT_ON_PDP_DOWN", True)):
-                self.pending_transport_close_reason = "network-disconnected"
 
     def _should_force_recover(self, quick):
         threshold = int(getattr(self.cfg, "NETWORK_FORCE_RECOVER_AFTER_CONNECT_FAILURES", 0))
