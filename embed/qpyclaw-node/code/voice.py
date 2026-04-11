@@ -23,7 +23,10 @@ class VoiceDialogClient(object):
         self.ws = None
         self.online = False
         self._seq = 0
-        self._lock = _thread.allocate_lock() if bool(_thread) and hasattr(_thread, "allocate_lock") else None
+        # _state_lock protects state fields only — never held during I/O
+        self._state_lock = _thread.allocate_lock() if bool(_thread) and hasattr(_thread, "allocate_lock") else None
+        # _abort_requested: set by abort() to interrupt chat() poll loop without holding a lock
+        self._abort_requested = False
         self.connected_at_ms = 0
         self.last_connect_ms = 0
         self.last_disconnect_ms = 0
@@ -53,12 +56,15 @@ class VoiceDialogClient(object):
         self.subscriptions = {}
 
     def _acquire(self):
-        if self._lock is not None:
-            self._lock.acquire()
+        if self._state_lock is not None:
+            self._state_lock.acquire()
 
     def _release(self):
-        if self._lock is not None:
-            self._lock.release()
+        if self._state_lock is not None:
+            try:
+                self._state_lock.release()
+            except Exception:
+                pass
 
     def _fail_locked(self, code, message, close=False):
         self.last_error_code = code or ""
@@ -228,9 +234,6 @@ class VoiceDialogClient(object):
             params["auth"] = auth
         return params
 
-    def _next_id_locked(self, prefix):
-        self._seq += 1
-        return str(prefix) + "_" + str(utime.ticks_ms()) + "_" + str(self._seq)
 
     def _close_locked(self, reason):
         self.last_close_reason = _string(reason).strip()
@@ -257,22 +260,24 @@ class VoiceDialogClient(object):
         finally:
             self._release()
 
-    def _recv_frame_locked(self, timeout_ms):
-        if self.ws is None:
+    def _recv_frame(self, ws, timeout_ms):
+        # No lock held — ws is a local reference captured before I/O
+        if ws is None:
             raise WsClosed("voice websocket closed")
-        text = self.ws.recv_text(timeout_ms)
+        text = ws.recv_text(timeout_ms)
         return loads(text)
 
-    def _send_frame_locked(self, frame):
-        if self.ws is None:
+    def _send_frame(self, ws, frame):
+        # No lock held
+        if ws is None:
             raise WsClosed("voice websocket closed")
-        self.ws.send_text(dumps(frame))
+        ws.send_text(dumps(frame))
 
-    def _await_response_locked(self, request_id, timeout_ms):
+    def _await_response(self, ws, request_id, timeout_ms):
         deadline = utime.ticks_add(utime.ticks_ms(), int(timeout_ms))
         while utime.ticks_diff(deadline, utime.ticks_ms()) > 0:
             remaining = utime.ticks_diff(deadline, utime.ticks_ms())
-            frame = self._recv_frame_locked(remaining)
+            frame = self._recv_frame(ws, remaining)
             if not isinstance(frame, dict):
                 continue
             if frame.get("type") == "res" and frame.get("id") == request_id:
@@ -280,27 +285,39 @@ class VoiceDialogClient(object):
             self._handle_async_frame_locked(frame, "", "")
         raise Exception("voice ack timeout")
 
-    def _request_locked(self, method, params, timeout_ms):
-        request_id = self._next_id_locked(method)
+    def _next_id(self):
+        self._acquire()
+        try:
+            self._seq += 1
+            return "voice_" + str(utime.ticks_ms()) + "_" + str(self._seq)
+        finally:
+            self._release()
+
+    def _request(self, ws, method, params, timeout_ms):
+        request_id = self._next_id()
         frame = {
             "type": "req",
             "id": request_id,
             "method": method,
             "params": params,
         }
-        self._send_frame_locked(frame)
-        return self._await_response_locked(request_id, timeout_ms)
+        self._send_frame(ws, frame)
+        return self._await_response(ws, request_id, timeout_ms)
 
-    def _wait_connect_challenge_locked(self):
+    def _wait_connect_challenge(self, ws):
         deadline = utime.ticks_add(utime.ticks_ms(), int(self._connect_timeout_sec() * 1000))
         while utime.ticks_diff(deadline, utime.ticks_ms()) > 0:
             remaining = utime.ticks_diff(deadline, utime.ticks_ms())
-            frame = self._recv_frame_locked(remaining)
+            frame = self._recv_frame(ws, remaining)
             if not isinstance(frame, dict):
                 continue
             if frame.get("type") == "event" and frame.get("event") == "connect.challenge":
-                self.last_event = "connect.challenge"
-                self.last_event_ms = utime.ticks_ms()
+                self._acquire()
+                try:
+                    self.last_event = "connect.challenge"
+                    self.last_event_ms = utime.ticks_ms()
+                finally:
+                    self._release()
                 return frame.get("payload") or {}
         raise Exception("voice connect challenge timeout")
 
@@ -310,29 +327,43 @@ class VoiceDialogClient(object):
             return True
         return method in methods
 
-    def _ensure_connected_locked(self):
+    def _ensure_connected(self):
+        # No lock held during I/O. Reads online/ws under lock, does network work outside.
         if not self._bool_value(getattr(self.cfg, "VOICE_ENABLED", False), False):
-            self._fail_locked("VOICE_DISABLED", "voice dialog is disabled", False)
-        if self.online and self.ws is not None:
-            return True
+            raise Exception("VOICE_DISABLED: voice dialog is disabled")
+
+        self._acquire()
+        try:
+            already = self.online and self.ws is not None
+        finally:
+            self._release()
+        if already:
+            return self.ws
+
         url = self._ws_url()
         if not url:
-            self._fail_locked("VOICE_CONFIG_ERROR", "voice operator websocket url missing", False)
+            raise Exception("VOICE_CONFIG_ERROR: voice operator websocket url missing")
         token = self._operator_auth_token()
         if not token:
-            self._fail_locked("VOICE_CONFIG_ERROR", "voice operator token missing", False)
+            raise Exception("VOICE_CONFIG_ERROR: voice operator token missing")
 
-        self._close_locked("reconnect")
+        # Close any stale connection under lock, then do TCP/TLS outside lock
+        self._acquire()
+        try:
+            self._close_locked("reconnect")
+        finally:
+            self._release()
+
         ws = WsClient()
         try:
             ws.connect(url, self._connect_timeout_sec())
-            self.ws = ws
-            challenge = self._wait_connect_challenge_locked()
+            challenge = self._wait_connect_challenge(ws)
             nonce = challenge.get("nonce") if isinstance(challenge, dict) else None
             if not nonce:
-                self._fail_locked("VOICE_CONNECT_FAILED", "connect challenge missing nonce", True)
+                raise Exception("VOICE_CONNECT_FAILED: connect challenge missing nonce")
             auth, device = self._resolve_connect_security_locked(token, nonce)
-            response = self._request_locked(
+            response = self._request(
+                ws,
                 "connect",
                 self._build_connect_params_locked(auth, device),
                 self._ack_timeout_ms(),
@@ -341,131 +372,155 @@ class VoiceDialogClient(object):
                 error = response.get("error") or {}
                 code = error.get("code") if isinstance(error, dict) else "VOICE_CONNECT_FAILED"
                 message = error.get("message") if isinstance(error, dict) else str(error)
-                self._fail_locked(_string(code).strip() or "VOICE_CONNECT_FAILED", _string(message).strip() or "voice connect failed", True)
+                raise Exception((_string(code).strip() or "VOICE_CONNECT_FAILED") + ": " + (_string(message).strip() or "voice connect failed"))
             payload = response.get("payload") or {}
-            self.online = True
-            self.connected_at_ms = utime.ticks_ms()
-            self.last_connect_ms = self.connected_at_ms
-            self.last_error = ""
-            self.last_error_code = ""
-            self.last_server_hello = payload
             features = payload.get("features") or {}
             methods = features.get("methods") if isinstance(features, dict) else None
-            if isinstance(methods, list):
-                self.server_methods = methods
-            else:
-                self.server_methods = []
-            return True
+            # Commit connected state under lock
+            self._acquire()
+            try:
+                self.ws = ws
+                self.online = True
+                self.connected_at_ms = utime.ticks_ms()
+                self.last_connect_ms = self.connected_at_ms
+                self.last_error = ""
+                self.last_error_code = ""
+                self.last_server_hello = payload
+                self.server_methods = methods if isinstance(methods, list) else []
+            finally:
+                self._release()
+            return ws
         except Exception as e:
-            if self.last_error_code == "":
-                self.last_error_code = "VOICE_CONNECT_FAILED"
-                self.last_error = str(e)
-                self.last_error_ms = utime.ticks_ms()
-            self._close_locked("connect-failed")
+            try:
+                ws.close()
+            except Exception:
+                pass
+            self._acquire()
+            try:
+                if self.last_error_code == "":
+                    self.last_error_code = "VOICE_CONNECT_FAILED"
+                    self.last_error = str(e)
+                    self.last_error_ms = utime.ticks_ms()
+                self._close_locked("connect-failed")
+            finally:
+                self._release()
             raise
 
-    def _subscribe_locked(self, session_key):
-        if session_key in self.subscriptions:
-            return {
-                "ok": True,
-                "session_key": session_key,
-                "status": "cached",
-            }
-        if not self._method_supported_locked("chat.subscribe"):
-            return {
-                "ok": False,
-                "session_key": session_key,
-                "status": "unsupported",
-            }
+    def _subscribe(self, ws, session_key):
+        # No lock held — ws passed as local ref, state fields updated briefly under lock
+        self._acquire()
         try:
-            response = self._request_locked(
-                "chat.subscribe",
-                {"sessionKey": session_key},
-                self._ack_timeout_ms(),
-            )
+            already = session_key in self.subscriptions
+            supported = self._method_supported_locked("chat.subscribe")
+        finally:
+            self._release()
+        if already:
+            return {"ok": True, "session_key": session_key, "status": "cached"}
+        if not supported:
+            return {"ok": False, "session_key": session_key, "status": "unsupported"}
+        try:
+            response = self._request(ws, "chat.subscribe", {"sessionKey": session_key}, self._ack_timeout_ms())
             if bool(response.get("ok")):
-                self.subscriptions[session_key] = utime.ticks_ms()
-                self.last_subscribe_error = ""
-                return {
-                    "ok": True,
-                    "session_key": session_key,
-                    "status": "subscribed",
-                    "payload": response.get("payload") or {},
-                }
+                self._acquire()
+                try:
+                    self.subscriptions[session_key] = utime.ticks_ms()
+                    self.last_subscribe_error = ""
+                finally:
+                    self._release()
+                return {"ok": True, "session_key": session_key, "status": "subscribed", "payload": response.get("payload") or {}}
             error = response.get("error") or {}
             code = error.get("code") if isinstance(error, dict) else "CHAT_SUBSCRIBE_FAILED"
             message = error.get("message") if isinstance(error, dict) else str(error)
-            self.last_subscribe_error = (_string(code).strip() or "CHAT_SUBSCRIBE_FAILED") + ": " + (_string(message).strip() or "subscribe failed")
-            return {
-                "ok": False,
-                "session_key": session_key,
-                "status": "failed",
-                "error": self.last_subscribe_error,
-            }
+            err_text = (_string(code).strip() or "CHAT_SUBSCRIBE_FAILED") + ": " + (_string(message).strip() or "subscribe failed")
+            self._acquire()
+            try:
+                self.last_subscribe_error = err_text
+            finally:
+                self._release()
+            return {"ok": False, "session_key": session_key, "status": "failed", "error": err_text}
         except Exception as e:
-            self.last_subscribe_error = str(e)
-            return {
-                "ok": False,
-                "session_key": session_key,
-                "status": "failed",
-                "error": str(e),
-            }
+            self._acquire()
+            try:
+                self.last_subscribe_error = str(e)
+            finally:
+                self._release()
+            return {"ok": False, "session_key": session_key, "status": "failed", "error": str(e)}
 
-    def _history_locked(self, session_key, history_limit):
-        if not self._method_supported_locked("chat.history"):
-            self._fail_locked("VOICE_UNSUPPORTED", "chat.history not supported by gateway", False)
-        params = {
-            "sessionKey": session_key,
-            "limit": int(history_limit),
-        }
-        response = self._request_locked("chat.history", params, self._ack_timeout_ms())
+    def _history(self, ws, session_key, history_limit):
+        # No lock held during network I/O
+        self._acquire()
+        try:
+            supported = self._method_supported_locked("chat.history")
+        finally:
+            self._release()
+        if not supported:
+            raise Exception("VOICE_UNSUPPORTED: chat.history not supported by gateway")
+        params = {"sessionKey": session_key, "limit": int(history_limit)}
+        response = self._request(ws, "chat.history", params, self._ack_timeout_ms())
         if not response.get("ok"):
             error = response.get("error") or {}
             code = error.get("code") if isinstance(error, dict) else "CHAT_HISTORY_FAILED"
             message = error.get("message") if isinstance(error, dict) else str(error)
-            self._fail_locked(_string(code).strip() or "CHAT_HISTORY_FAILED", _string(message).strip() or "chat history failed", False)
+            raise Exception((_string(code).strip() or "CHAT_HISTORY_FAILED") + ": " + (_string(message).strip() or "chat history failed"))
         payload = response.get("payload") or {}
-        self.last_history_count = len(self._extract_history_messages_locked(payload))
-        self.last_history_poll_ms = utime.ticks_ms()
+        self._acquire()
+        try:
+            self.last_history_count = len(self._extract_history_messages_locked(payload))
+            self.last_history_poll_ms = utime.ticks_ms()
+        finally:
+            self._release()
         return payload
 
-    def _send_chat_locked(self, message, session_key, idempotency_key):
-        if not self._method_supported_locked("chat.send"):
-            self._fail_locked("VOICE_UNSUPPORTED", "chat.send not supported by gateway", False)
-        params = {
-            "sessionKey": session_key,
-            "message": message,
-        }
+    def _send_chat(self, ws, message, session_key, idempotency_key):
+        # No lock held during network I/O
+        self._acquire()
+        try:
+            supported = self._method_supported_locked("chat.send")
+        finally:
+            self._release()
+        if not supported:
+            raise Exception("VOICE_UNSUPPORTED: chat.send not supported by gateway")
+        params = {"sessionKey": session_key, "message": message}
         if idempotency_key:
             params["idempotencyKey"] = idempotency_key
-        response = self._request_locked("chat.send", params, self._ack_timeout_ms())
+        response = self._request(ws, "chat.send", params, self._ack_timeout_ms())
         if not response.get("ok"):
             error = response.get("error") or {}
             code = error.get("code") if isinstance(error, dict) else "CHAT_SEND_FAILED"
             message_text = error.get("message") if isinstance(error, dict) else str(error)
-            self._fail_locked(_string(code).strip() or "CHAT_SEND_FAILED", _string(message_text).strip() or "chat send failed", False)
+            raise Exception((_string(code).strip() or "CHAT_SEND_FAILED") + ": " + (_string(message_text).strip() or "chat send failed"))
         payload = response.get("payload") or {}
-        self.last_run_id = _string(payload.get("runId")).strip()
-        self.last_chat_status = _string(payload.get("status")).strip()
-        self.last_sent_message = message
-        self.last_sent_session_key = session_key
-        self.last_turn_id = idempotency_key
+        self._acquire()
+        try:
+            self.last_run_id = _string(payload.get("runId")).strip()
+            self.last_chat_status = _string(payload.get("status")).strip()
+            self.last_sent_message = message
+            self.last_sent_session_key = session_key
+            self.last_turn_id = idempotency_key
+        finally:
+            self._release()
         return payload
 
-    def _abort_locked(self, session_key):
-        if not self._method_supported_locked("chat.abort"):
-            self._fail_locked("VOICE_UNSUPPORTED", "chat.abort not supported by gateway", False)
-        response = self._request_locked(
-            "chat.abort",
-            {"sessionKey": session_key},
-            self._ack_timeout_ms(),
-        )
+    def _send_abort(self, ws, session_key):
+        # No lock held during network I/O
+        self._acquire()
+        try:
+            supported = self._method_supported_locked("chat.abort")
+        finally:
+            self._release()
+        if not supported:
+            raise Exception("VOICE_UNSUPPORTED: chat.abort not supported by gateway")
+        response = self._request(ws, "chat.abort", {"sessionKey": session_key}, self._ack_timeout_ms())
         if not response.get("ok"):
             error = response.get("error") or {}
             code = error.get("code") if isinstance(error, dict) else "CHAT_ABORT_FAILED"
             message = error.get("message") if isinstance(error, dict) else str(error)
-            self._fail_locked(_string(code).strip() or "CHAT_ABORT_FAILED", _string(message).strip() or "chat abort failed", False)
-        self.last_chat_status = "aborted"
+            raise Exception((_string(code).strip() or "CHAT_ABORT_FAILED") + ": " + (_string(message).strip() or "chat abort failed"))
+        self._acquire()
+        try:
+            self.last_chat_status = "aborted"
+        finally:
+            self._release()
         return response.get("payload") or {}
 
     def _event_matches_locked(self, payload, session_key, run_id):
@@ -695,25 +750,35 @@ class VoiceDialogClient(object):
             self._release()
 
     def chat(self, message, session_key="", timeout_ms=None, idempotency_key="", subscribe=None, history_limit=None):
+        # Lock is NOT held during any I/O. _abort_requested flag allows abort() to interrupt
+        # the poll loop without needing to acquire the lock.
+        message_text = _string(message).strip()
+        if not message_text:
+            raise Exception("CHAT_SEND_FAILED: message required")
+
+        session_key_text = self._session_key(session_key)
+        timeout_value = self._chat_timeout_ms(timeout_ms)
+        poll_ms = self._chat_poll_ms()
+        history_limit_value = self._history_limit(history_limit)
+        subscribe_enabled = self._bool_value(subscribe, getattr(self.cfg, "VOICE_CHAT_SUBSCRIBE", True))
+        turn_id = _string(idempotency_key).strip()
+        if not turn_id:
+            turn_id = self._next_id()
+
+        # Clear abort flag before starting
         self._acquire()
         try:
-            message_text = _string(message).strip()
-            if not message_text:
-                self._fail_locked("CHAT_SEND_FAILED", "message required", False)
-            session_key_text = self._session_key(session_key)
-            timeout_value = self._chat_timeout_ms(timeout_ms)
-            poll_ms = self._chat_poll_ms()
-            history_limit_value = self._history_limit(history_limit)
-            subscribe_enabled = self._bool_value(subscribe, getattr(self.cfg, "VOICE_CHAT_SUBSCRIBE", True))
-            turn_id = _string(idempotency_key).strip()
-            if not turn_id:
-                turn_id = self._next_id_locked("voice_turn")
-            started = utime.ticks_ms()
+            self._abort_requested = False
+        finally:
+            self._release()
 
-            self._ensure_connected_locked()
-            baseline = {}
-            baseline_payload = self._history_locked(session_key_text, history_limit_value)
+        started = utime.ticks_ms()
+        try:
+            ws = self._ensure_connected()
+
+            baseline_payload = self._history(ws, session_key_text, history_limit_value)
             baseline_messages = self._extract_history_messages_locked(baseline_payload)
+            baseline = {}
             index = 0
             while index < len(baseline_messages):
                 baseline[self._message_fingerprint_locked(baseline_messages[index])] = True
@@ -721,39 +786,61 @@ class VoiceDialogClient(object):
 
             subscribe_result = None
             if subscribe_enabled:
-                subscribe_result = self._subscribe_locked(session_key_text)
+                subscribe_result = self._subscribe(ws, session_key_text)
 
-            send_payload = self._send_chat_locked(message_text, session_key_text, turn_id)
+            send_payload = self._send_chat(ws, message_text, session_key_text, turn_id)
             run_id = _string(send_payload.get("runId")).strip()
             history_polls = 0
             chat_events = 0
             deadline = utime.ticks_add(utime.ticks_ms(), timeout_value)
 
             while utime.ticks_diff(deadline, utime.ticks_ms()) > 0:
+                # Check abort flag — set by abort() without holding a lock
+                self._acquire()
+                try:
+                    aborted = self._abort_requested
+                finally:
+                    self._release()
+                if aborted:
+                    duration = utime.ticks_diff(utime.ticks_ms(), started)
+                    self._acquire()
+                    try:
+                        self.last_chat_status = "aborted"
+                        self.last_chat_duration_ms = duration
+                        self.last_chat_event_count = chat_events
+                        self.last_chat_history_polls = history_polls
+                    finally:
+                        self._release()
+                    raise Exception("CHAT_ABORTED: abort requested")
+
                 remaining = utime.ticks_diff(deadline, utime.ticks_ms())
-                wait_ms = remaining
-                if wait_ms > poll_ms:
-                    wait_ms = poll_ms
+                wait_ms = remaining if remaining <= poll_ms else poll_ms
                 if wait_ms <= 0:
                     wait_ms = 1
                 try:
-                    frame = self._recv_frame_locked(wait_ms)
+                    frame = self._recv_frame(ws, wait_ms)
                     if self._handle_async_frame_locked(frame, session_key_text, run_id):
                         chat_events += 1
                 except WsTimeout:
                     pass
-                payload = self._history_locked(session_key_text, history_limit_value)
+
+                payload = self._history(ws, session_key_text, history_limit_value)
                 history_polls += 1
                 candidate = self._find_reply_locked(payload, baseline)
                 if candidate is not None:
                     reply_text, directive = self._strip_voice_directive_locked(candidate.get("text"))
-                    self.last_reply_text = reply_text
-                    self.last_reply_message_id = candidate.get("message_id") or ""
-                    self.last_voice_directive = directive
-                    self.last_chat_status = "ok"
-                    self.last_chat_duration_ms = utime.ticks_diff(utime.ticks_ms(), started)
-                    self.last_chat_event_count = chat_events
-                    self.last_chat_history_polls = history_polls
+                    duration = utime.ticks_diff(utime.ticks_ms(), started)
+                    self._acquire()
+                    try:
+                        self.last_reply_text = reply_text
+                        self.last_reply_message_id = candidate.get("message_id") or ""
+                        self.last_voice_directive = directive
+                        self.last_chat_status = "ok"
+                        self.last_chat_duration_ms = duration
+                        self.last_chat_event_count = chat_events
+                        self.last_chat_history_polls = history_polls
+                    finally:
+                        self._release()
                     return {
                         "ok": True,
                         "status": "ok",
@@ -762,33 +849,60 @@ class VoiceDialogClient(object):
                         "run_id": run_id,
                         "reply_text": reply_text,
                         "voice_directive": directive,
-                        "assistant_message_id": self.last_reply_message_id,
+                        "assistant_message_id": candidate.get("message_id") or "",
                         "chat_events": chat_events,
                         "history_polls": history_polls,
-                        "duration_ms": self.last_chat_duration_ms,
+                        "duration_ms": duration,
                         "subscribe": subscribe_result,
                     }
 
-            self.last_chat_status = "timeout"
-            self.last_chat_duration_ms = utime.ticks_diff(utime.ticks_ms(), started)
-            self.last_chat_event_count = chat_events
-            self.last_chat_history_polls = history_polls
-            self._fail_locked("CHAT_TIMEOUT", "chat reply not received before timeout", False)
+            duration = utime.ticks_diff(utime.ticks_ms(), started)
+            self._acquire()
+            try:
+                self.last_chat_status = "timeout"
+                self.last_chat_duration_ms = duration
+                self.last_chat_event_count = chat_events
+                self.last_chat_history_polls = history_polls
+            finally:
+                self._release()
+            raise Exception("CHAT_TIMEOUT: chat reply not received before timeout")
+
+        except Exception as e:
+            self._acquire()
+            try:
+                if self.last_error_code == "":
+                    self.last_error_code = "CHAT_ERROR"
+                    self.last_error = str(e)
+                    self.last_error_ms = utime.ticks_ms()
+            finally:
+                self._release()
+            raise
+
+    def abort(self, session_key=""):
+        # Immediately set abort flag — interrupts chat() poll loop without waiting for lock
+        self._acquire()
+        try:
+            self._abort_requested = True
+            run_id = self.last_run_id
         finally:
             self._release()
 
-    def abort(self, session_key=""):
-        self._acquire()
+        session_key_text = self._session_key(session_key)
         try:
-            session_key_text = self._session_key(session_key)
-            self._ensure_connected_locked()
-            payload = self._abort_locked(session_key_text)
+            ws = self._ensure_connected()
+            payload = self._send_abort(ws, session_key_text)
             return {
                 "ok": True,
                 "status": "aborted",
                 "session_key": session_key_text,
-                "run_id": self.last_run_id,
+                "run_id": run_id,
                 "payload": payload,
             }
-        finally:
-            self._release()
+        except Exception as e:
+            return {
+                "ok": False,
+                "status": "abort_requested",
+                "session_key": session_key_text,
+                "run_id": run_id,
+                "error": str(e),
+            }
