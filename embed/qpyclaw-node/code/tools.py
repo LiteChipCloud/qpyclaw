@@ -1334,11 +1334,20 @@ class CommandWorker(object):
                     utime.sleep(0.02)
                 continue
 
+            exec_started = utime.ticks_ms()
             try:
                 result = self.runner.execute(cmd)
             except Exception as e:
                 self.state.note_error("WORKER_EXEC_FAILED", str(e))
                 result = self._build_worker_error(cmd, str(e))
+
+            elapsed_ms = utime.ticks_diff(utime.ticks_ms(), exec_started)
+            max_ms = int(getattr(self.runner.cfg, "MAX_CMD_EXEC_SEC", 30)) * 1000
+            if elapsed_ms > max_ms:
+                self.state.note_error(
+                    "WORKER_EXEC_TIMEOUT",
+                    str(cmd.get("tool") or "unknown") + " took " + str(elapsed_ms) + "ms",
+                )
 
             self._acquire()
             try:
