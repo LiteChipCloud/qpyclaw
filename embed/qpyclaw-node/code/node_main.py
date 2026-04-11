@@ -56,6 +56,36 @@ def _cfg_bool(cfg, name, default=False):
     return _normalize_bool(value, default)
 
 
+def _purge_runtime_modules():
+    names = (
+        "qpyclaw_node",
+        "config",
+        "ws_client",
+        "transport",
+        "qpy_tools_runtime",
+        "voice",
+        "cellular",
+    )
+    try:
+        mods = getattr(_sys, "modules", None)
+    except Exception:
+        mods = None
+    if mods is None:
+        return False
+    removed = False
+    index = 0
+    while index < len(names):
+        name = names[index]
+        try:
+            if name in mods:
+                mods.pop(name)
+                removed = True
+        except Exception:
+            pass
+        index += 1
+    return removed
+
+
 def _load_qpyclaw_node():
     module = None
     try:
@@ -66,13 +96,7 @@ def _load_qpyclaw_node():
     if module is not None and hasattr(module, "create_runtime"):
         return module
 
-    try:
-        mods = getattr(_sys, "modules", None)
-        if mods is not None and "qpyclaw_node" in mods:
-            mods.pop("qpyclaw_node")
-    except Exception:
-        pass
-
+    _purge_runtime_modules()
     return __import__("qpyclaw_node")
 
 
@@ -89,14 +113,53 @@ def _existing_board_runtime(module):
         snapshot = node.debug_snapshot()
     except Exception:
         return None
+    if not _runtime_snapshot_alive(snapshot):
+        return None
+    return node
+
+
+def _configure_existing_runtime(runtime, enable_voice=False, voice_auto_start=False):
+    if runtime is None:
+        return None
+    extension = getattr(runtime, "extension", None)
+    if extension is None or not hasattr(extension, "board"):
+        return runtime
+    board = extension.board
+    if board is None or not hasattr(board, "voice") or board.voice is None:
+        return runtime
+    if enable_voice:
+        board.voice.configure(enabled=True, auto_start=voice_auto_start)
+        if voice_auto_start:
+            board.voice.start()
+    return runtime
+
+
+def _ticks_ms():
+    try:
+        return _utime.ticks_ms()
+    except Exception:
+        return 0
+
+
+def _ticks_diff(newer, older):
+    try:
+        return _utime.ticks_diff(int(newer or 0), int(older or 0))
+    except Exception:
+        return int(newer or 0) - int(older or 0)
+
+
+def _runtime_snapshot_alive(snapshot, max_idle_ms=6000):
+    if not isinstance(snapshot, dict):
+        return False
     state = snapshot.get("state") or {}
-    if (
-        bool(snapshot.get("has_runtime"))
-        and bool(snapshot.get("has_extension"))
-        and int(state.get("last_tick_ms") or 0) > 0
-    ):
-        return node
-    return None
+    if not bool(snapshot.get("has_runtime")):
+        return False
+    if not bool(snapshot.get("has_extension")):
+        return False
+    last_tick_ms = int(state.get("last_tick_ms") or 0)
+    if last_tick_ms <= 0:
+        return False
+    return _ticks_diff(_ticks_ms(), last_tick_ms) <= int(max_idle_ms or 6000)
 
 
 def _sleep_ms(delay_ms):
@@ -109,16 +172,29 @@ def _sleep_ms(delay_ms):
         pass
 
 
+_MAX_CONSECUTIVE_STEP_ERRORS = 10
+
+
 def _run_runtime_loop(runtime):
+    consecutive_errors = 0
     while True:
         try:
             ok = runtime.step()
+            consecutive_errors = 0
         except Exception as e:
+            consecutive_errors += 1
             try:
                 if hasattr(runtime, "state") and hasattr(runtime.state, "note_error"):
                     runtime.state.note_error("MAIN_LOOP_ERROR", _string(e))
             except Exception:
                 pass
+            if consecutive_errors >= _MAX_CONSECUTIVE_STEP_ERRORS:
+                try:
+                    import qpyclaw_node as _qn
+                    if hasattr(_qn, "execute_reboot"):
+                        _qn.execute_reboot("soft")
+                except Exception:
+                    pass
             _sleep_ms(3000)
             continue
         if ok:
@@ -129,14 +205,17 @@ def _run_runtime_loop(runtime):
 
 def main():
     qpyclaw_node = _load_qpyclaw_node()
-    existing = _existing_board_runtime(qpyclaw_node)
-    if existing is not None:
-        return existing
-
     cfg = getattr(qpyclaw_node, "config", None)
     voice_enabled = _cfg_bool(cfg, "BOARD_VOICE_ENABLED", _cfg_bool(cfg, "VOICE_ENABLED", False))
     open_audio = _cfg_bool(cfg, "BOARD_OPEN_AUDIO", voice_enabled)
     voice_auto_start = _cfg_bool(cfg, "BOARD_VOICE_AUTO_START", voice_enabled)
+    existing = _existing_board_runtime(qpyclaw_node)
+    if existing is not None:
+        return _configure_existing_runtime(
+            existing,
+            enable_voice=voice_enabled,
+            voice_auto_start=voice_auto_start,
+        )
 
     extension = create_qpyclaw_extension(
         enable_charge=True,
