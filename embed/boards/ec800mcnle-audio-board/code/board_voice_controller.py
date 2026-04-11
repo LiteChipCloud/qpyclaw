@@ -122,6 +122,17 @@ class BoardVoiceSessionController(object):
         self.audio_capture_buffer = []
         self.last_audio_capture = {}
         self._button_was_pressed = False
+        self._pending_ui_state = None
+        self._pending_ui_message = None
+        self._pending_audio_stop = False
+        self._pending_speaker_result = None
+        self._pending_lock = None
+        _thr = self._thread
+        if _thr is not None and hasattr(_thr, "allocate_lock"):
+            try:
+                self._pending_lock = _thr.allocate_lock()
+            except Exception:
+                pass
         self._state_emotions = {
             "idle": "neutral",
             "wake": "surprised",
@@ -136,6 +147,68 @@ class BoardVoiceSessionController(object):
     def _acquire(self):
         if self._lock is not None:
             self._lock.acquire()
+
+    def _pending_acquire(self):
+        if self._pending_lock is not None:
+            self._pending_lock.acquire()
+
+    def _pending_release(self):
+        if self._pending_lock is not None:
+            try:
+                self._pending_lock.release()
+            except Exception:
+                pass
+
+    def _queue_ui_update(self, state, message=None):
+        self._pending_acquire()
+        try:
+            self._pending_ui_state = state
+            if message is not None:
+                self._pending_ui_message = message
+        finally:
+            self._pending_release()
+
+    def _queue_speaker(self, result):
+        self._pending_acquire()
+        try:
+            self._pending_speaker_result = result
+        finally:
+            self._pending_release()
+
+    def _flush_pending(self):
+        self._pending_acquire()
+        try:
+            ui_state = self._pending_ui_state
+            ui_message = self._pending_ui_message
+            audio_stop = self._pending_audio_stop
+            speaker_result = self._pending_speaker_result
+            self._pending_ui_state = None
+            self._pending_ui_message = None
+            self._pending_audio_stop = False
+            self._pending_speaker_result = None
+        finally:
+            self._pending_release()
+        if ui_state is not None:
+            try:
+                self._show_state(ui_state)
+            except Exception:
+                pass
+        if ui_message is not None:
+            try:
+                self._show_status_text(ui_message)
+            except Exception:
+                pass
+        if audio_stop:
+            try:
+                if self.audio is not None and hasattr(self.audio, "stop"):
+                    self.audio.stop()
+            except Exception:
+                pass
+        if speaker_result is not None:
+            try:
+                self._run_speaker(speaker_result)
+            except Exception:
+                pass
 
     def _release(self):
         if self._lock is not None:
@@ -189,6 +262,36 @@ class BoardVoiceSessionController(object):
         self.last_error = self._string(message).strip()
         self.last_error_ms = _ticks_ms()
         return self.last_error
+
+    def _clear_error(self):
+        self.last_error = ""
+        self.last_error_ms = 0
+        return True
+
+    def _is_benign_transcript_error(self, message, context):
+        reason = ""
+        if isinstance(context, dict):
+            reason = self._string(context.get("reason")).strip().lower()
+        else:
+            reason = self._string(context).strip().lower()
+        if reason not in ("timeout", "listen-timeout", "vad_end", "vad-end", "silence"):
+            return False
+        text = self._string(message).strip().lower()
+        if not text:
+            return False
+        tokens = (
+            "transcript missing",
+            "asr transcript missing",
+            "audio capture empty",
+            "empty transcript",
+            "no speech",
+        )
+        index = 0
+        while index < len(tokens):
+            if tokens[index] in text:
+                return True
+            index += 1
+        return False
 
     def _show_state(self, state):
         if self.ui is None:
@@ -457,7 +560,11 @@ class BoardVoiceSessionController(object):
             except TypeError:
                 payload = provider(self, context)
         except Exception as e:
-            self._note_error("transcript_provider: " + self._string(e))
+            error_text = self._string(e)
+            if self._is_benign_transcript_error(error_text, context):
+                self._clear_error()
+                return None
+            self._note_error("transcript_provider: " + error_text)
             return None
         return self._normalize_transcript_job(payload, "provider")
 
@@ -747,10 +854,11 @@ class BoardVoiceSessionController(object):
             handler_result = handler(self, result)
         except TypeError:
             handler_result = handler(result)
-        speaker_result = self._run_speaker(result)
+        # Queue speaker for main thread — do not call _run_speaker from background thread
+        self._queue_speaker(result)
         return {
             "handler": handler_result,
-            "speaker": speaker_result,
+            "speaker": {"queued": True},
         }
 
     def _finish_turn(self, ok, result, error_text):
@@ -965,6 +1073,7 @@ class BoardVoiceSessionController(object):
             and self.state in ("idle", "error")
         ):
             self._start_kws()
+        self._flush_pending()
         return True
 
     def handle_button(self):
