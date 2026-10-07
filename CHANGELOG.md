@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+
+1. U235 (EC600U) AIRI board support — new board variant under `embed/boards/u235-ec600u-airi-board/`: bootstrap, display, UI, GIF/AnimIMG/RGB565 frame players, and the AIRI expression pipeline (manifest-driven RGB565 frame sequences plus pack build tools)
+2. Self-healing runtime restart and tool-execution timeout recording; threading-safety test suite passing across all 7 scenarios
+
+### Fixed
+
+1. `voice.py` lock refactor — dedicated state lock + abort flag, eliminating lock-held I/O deadlocks
+2. Race-condition fixes in `dispatch.py`, `cellular.py`, and `board_voice_controller.py`
+
+### Changed
+
+1. Finalized the `embed/` runtime directory migration (code / components / boards layout)
+
 ## [0.1.2-alpha.1] - 2026-04-01
 
 ### Added
