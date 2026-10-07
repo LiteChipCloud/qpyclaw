@@ -48,6 +48,14 @@ The EC800MCNLE audio reference board is available off the shelf as the **EC800X 
 
 Available from **移远官方旗舰店** (Quectel Tmall flagship store, brand-direct).
 
+## QuecPython Official Resources
+
+| Resource | Link |
+|---|---|
+| QuecPython website | <https://python.quectel.com/> |
+| Documentation home (tutorials / API / examples) | <https://python.quectel.com/doc/> |
+| Open-source organization (GitHub) | <https://github.com/QuecPython> |
+
 ---
 
 ## Related Project: LiteGate CLI
