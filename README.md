@@ -38,7 +38,9 @@ See the public Quickstart (`docs/public/00-quickstart.md`) for the bring-up work
 
 ## Recommended Hardware
 
-The target board for this runtime — the EC800MCNLE audio board — is available off the shelf as the **EC800X Audio Core Board** from the Quectel Tmall flagship store. It carries an onboard mic + speaker interface, antenna / UART / LCD / USB / battery headers, a function key with tri-color status LED, and supports QuecPython/AT development out of the box.
+qpyclaw is board-agnostic: the runtime targets QuecPython cellular boards in general, and boards plug in as `embed/boards/<board>` variants (currently the EC800MCNLE audio board and the U235 EC600U AIRI board).
+
+The EC800MCNLE audio reference board is available off the shelf as the **EC800X Audio Core Board** from the Quectel Tmall flagship store. It carries an onboard mic + speaker interface, antenna / UART / LCD / USB / battery headers, a function key with tri-color status LED, and supports QuecPython/AT development out of the box.
 
 <p align="center">
   <img src="docs/images/quectel-ec800x-audio-board.jpg" alt="EC800X Audio Core Board — Quectel Tmall flagship store" width="360" />&nbsp;&nbsp;<img src="docs/images/quectel-tmall-store.png" alt="Quectel Tmall flagship store (移远旗舰店)" width="170" />
