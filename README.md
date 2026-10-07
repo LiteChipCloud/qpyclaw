@@ -35,3 +35,24 @@ embed/
 ## Getting Started
 
 See the public Quickstart (`docs/public/00-quickstart.md`) for the bring-up workflow and the config samples (`docs/public/01-config-sample.md`) for the placeholders you should override on-device. Host tooling lives under `tools/host/` and contains the recovery, smoke, and probe scripts you use on Windows.
+
+## Recommended Hardware
+
+The target board for this runtime — the EC800MCNLE audio board — is available off the shelf as the **EC800X Audio Core Board** from the Quectel Tmall flagship store. It carries an onboard mic + speaker interface, antenna / UART / LCD / USB / battery headers, a function key with tri-color status LED, and supports QuecPython/AT development out of the box.
+
+<p align="center">
+  <img src="docs/images/quectel-ec800x-audio-board.jpg" alt="EC800X Audio Core Board — Quectel Tmall flagship store" width="380" />
+</p>
+
+---
+
+## Related Project: LiteGate CLI
+
+[LiteGate](https://github.com/LiteChipCloud/litegate) is an all-in-one LLM API gateway: one key for Claude, GLM, DeepSeek, MiniMax, Qwen and 14 models in total — OpenAI & Claude dual-protocol compatible, permanently-free models, 1M context across the lineup. The official CLI wires Claude Code / Codex / ZCode / MiniMax Code and more to LiteGate in one command:
+
+```bash
+# zero-install
+npx @litechipcloud/litegate init
+```
+
+See [LiteChipCloud/litegate](https://github.com/LiteChipCloud/litegate) for details.
